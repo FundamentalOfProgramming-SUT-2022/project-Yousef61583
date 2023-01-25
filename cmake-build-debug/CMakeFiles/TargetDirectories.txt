@@ -1,0 +1,3 @@
+C:/Users/yousef2022/Documents/GitHub/project-Yousef61583/cmake-build-debug/CMakeFiles/project_Yousef61583.dir
+C:/Users/yousef2022/Documents/GitHub/project-Yousef61583/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/yousef2022/Documents/GitHub/project-Yousef61583/cmake-build-debug/CMakeFiles/rebuild_cache.dir
