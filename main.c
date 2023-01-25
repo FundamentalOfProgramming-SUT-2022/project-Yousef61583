@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <stdlib.h>
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -31,19 +34,60 @@ int Command_code(char *command){
     return code;
 }
 
+char* find_file_address(char *entry){
+    char entry_cpy[500];
+    char *token;
+
+    strcpy(entry_cpy,entry);
+    token = strtok(entry_cpy," ");
+    token = strtok(NULL, " ");
+    token = strtok(NULL, " ");
+    printf("%s\n",token);
+
+    if(*token == '"'){
+        strcpy(entry_cpy,entry);
+        token = strtok(entry_cpy,"\"");
+        token = strtok(NULL,"\"");
+    }
+
+    return token;
+}
+
+void create_file(char *entry){
+    char* file_address;
+    file_address = (char*) calloc(500,sizeof(char));
+    strcpy(file_address,find_file_address(entry));
+
+    printf("%s\n",file_address);
+
+    FILE * file;
+    file = fopen(file_address, "r");
+    if (file){
+        printf("file already exist\n");
+        fclose(file);
+    }
+    else{
+
+    }
+
+
+
+}
+
 int main() {
     char entry[500];
-    char *token;
+    char command[500];
     while(1){
         gets(entry);
-        token=strtok(entry , " ");
-        switch (Command_code(token)) {
+        strcpy(command,entry);
+        strtok(command , " ");
+        switch (Command_code(command)) {
             case Invalid:
                 printf("invalid command\n");
                 break;
 
             case Create_File:
-                printf("create file\n");
+                create_file(entry);
                 break;
 
             case Insert:
