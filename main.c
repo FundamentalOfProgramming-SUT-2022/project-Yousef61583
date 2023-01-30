@@ -76,23 +76,19 @@ int check_file_existence(char* __file_address){
     return 0;
 }
 
-void create_path(char* address){
-    char path[STRING_SIZE];
+void create_path(char* path){
     char path_copy[STRING_SIZE];
-    char name[STRING_SIZE];
-    int stat;
-    printf("%s\n",address);
-    find_file_path(address , path);
-    printf("%s\n",path);
-    find_file_name(path , name);
-    printf("%s\n",name);
+    char* token;
+    int cd_stat;
     strcpy(path_copy,path);
-    stat = chdir(path_copy);
-    printf("address:%s\n path:%s\n stat:%d\n",address,path,stat);
-    if(stat == -1){
-        create_path(path);
-        mkdir(name);
-        chdir(path);
+    token = strtok(path_copy,"\\");
+    while(token != NULL){
+        cd_stat = chdir(token);
+        if(cd_stat == -1){
+            mkdir(token);
+            chdir(token);
+        }
+        token = strtok(NULL , "\\");
     }
 }
 
@@ -115,9 +111,6 @@ void create_file(char *entry){
 int main() {
     char entry[STRING_SIZE];
     char command[STRING_SIZE];
-    char path[STRING_SIZE];
-    create_path("E:\\new_file\\dir1\\dir2\\file.txt");
-    printf("HI\n");
     while(1){
         gets(entry);
         strcpy(command,entry);
