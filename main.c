@@ -76,11 +76,11 @@ int check_file_existence(char* __file_address){
     return 0;
 }
 
-void create_path(char* path){
+void create_path(char* __path){
     char path_copy[STRING_SIZE];
     char* token;
     int cd_stat;
-    strcpy(path_copy,path);
+    strcpy(path_copy, __path);
     token = strtok(path_copy,"\\");
     while(token != NULL){
         cd_stat = chdir(token);
@@ -92,7 +92,6 @@ void create_path(char* path){
     }
 }
 
-
 void create_file(char *entry){
     char file_address[STRING_SIZE],file_path[STRING_SIZE],file_name[STRING_SIZE];
     find_file_address(entry,file_address);
@@ -102,9 +101,11 @@ void create_file(char *entry){
     if(check_file_existence(file_address))
         printf("file already exist\n");
     else{
-
+        create_path(file_path);
+        FILE * file;
+        file = fopen(file_name, "w");
+        fclose(file);
     }
-
 
 }
 
