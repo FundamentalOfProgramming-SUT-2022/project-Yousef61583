@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#define STRING_SIZE 500
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -34,49 +35,89 @@ int Command_code(char *command){
     return code;
 }
 
-char* find_file_address(char *entry){
-    char entry_cpy[500];
+void find_file_address(char* __entry , char* __file_address){
+    char entry_cpy[STRING_SIZE];
     char *token;
 
-    strcpy(entry_cpy,entry);
-    token = strtok(entry_cpy," ");
-    token = strtok(NULL, " ");
-    token = strtok(NULL, " ");
-    printf("%s\n",token);
+    strcpy(entry_cpy, __entry);
+    token = strtok(entry_cpy," "); //this token is the command.
+    token = strtok(NULL, " "); //this token is "-file" header.
+    token = strtok(NULL, " "); // this token is the file address.
 
     if(*token == '"'){
-        strcpy(entry_cpy,entry);
+        strcpy(entry_cpy, __entry);
         token = strtok(entry_cpy,"\"");
         token = strtok(NULL,"\"");
     }
 
-    return token;
+    strcpy(__file_address, token) ;
 }
 
-void create_file(char *entry){
-    char* file_address;
-    file_address = (char*) calloc(500,sizeof(char));
-    strcpy(file_address,find_file_address(entry));
+void find_file_path(char* __file_address , char* __file_path){
+    int i;
+    for(i = strlen(__file_address) - 1; __file_address[i] != '\\'; i--);
+    strncpy(__file_path,__file_address,i);
+}
 
-    printf("%s\n",file_address);
+void find_file_name(char* __file_address , char* __file_name){
+    char address[STRING_SIZE];
+    strcpy(address , strrev(__file_address));
+    strtok(address , "\\");
+    strcpy(__file_name , strrev(address));
+}
 
+int check_file_existence(char* __file_address){
     FILE * file;
-    file = fopen(file_address, "r");
+    file = fopen(__file_address, "r");
     if (file){
-        printf("file already exist\n");
         fclose(file);
+        return 1;
     }
+    return 0;
+}
+
+void create_path(char* address){
+    char path[STRING_SIZE];
+    char path_copy[STRING_SIZE];
+    char name[STRING_SIZE];
+    int stat;
+    printf("%s\n",address);
+    find_file_path(address , path);
+    printf("%s\n",path);
+    find_file_name(path , name);
+    printf("%s\n",name);
+    strcpy(path_copy,path);
+    stat = chdir(path_copy);
+    printf("address:%s\n path:%s\n stat:%d\n",address,path,stat);
+    if(stat == -1){
+        create_path(path);
+        mkdir(name);
+        chdir(path);
+    }
+}
+
+
+void create_file(char *entry){
+    char file_address[STRING_SIZE],file_path[STRING_SIZE],file_name[STRING_SIZE];
+    find_file_address(entry,file_address);
+    find_file_path(file_address , file_path);
+    find_file_name(file_address , file_name);
+
+    if(check_file_existence(file_address))
+        printf("file already exist\n");
     else{
 
     }
 
 
-
 }
 
 int main() {
-    char entry[500];
-    char command[500];
+    char entry[STRING_SIZE];
+    char command[STRING_SIZE];
+    char path[STRING_SIZE];
+    create_path("E:\\new_file\\dir1\\dir2\\file.txt");
+    printf("HI\n");
     while(1){
         gets(entry);
         strcpy(command,entry);
