@@ -18,12 +18,14 @@ enum commands {
 //function prototypes:
 int Command_code(char *command);
 int terminal();
+long long find_word(char *string , char *word);
+char *get_file_address(char *sting);
 
 
 int main() {
-    while(terminal()){
-
-    }
+    char string[] = "12345 -file lkjlkjlknm";
+    char word[] = "-fine";
+    printf("%lld", find_word(string,word));
     return 0;
 }
 
@@ -121,4 +123,21 @@ int terminal(){
 
     }
     return 1;
+}
+
+long long find_word(char *string , char *word){
+    char temp[strlen(word)];
+    long long i ,j , size ;
+    size = strlen(string) - strlen(word);
+    for(i=0;i<=size;i++){
+        for(j=0;j< strlen(word);j++)
+            temp[j]=string[i+j];
+        if(!strcmp(word,temp))
+            return i;
+    }
+    return -1;
+}
+
+char *get_file_address(char *sting){
+
 }
