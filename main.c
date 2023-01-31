@@ -22,21 +22,15 @@ int terminal();
 long long find_word(char *string , char *word);
 char *get_file_address(char *string);
 char *get_file_path(char *address);
-char *get_file_name(char *address);
 int file_exist(char *address);
-void create_file(char *address );
+void create_path(char *address );
+void create_file(char *string);
 
 
 int main() {
     char *string;
     getcwd(parent_directory,STRING_SIZE);
-    printf("%s\n",parent_directory);
 
-    string = (char*) calloc(STRING_SIZE , sizeof(char));
-    gets(string);
-    char *address;
-    address = get_file_address(string);
-    printf("%s : %d\n", address, file_exist(address));
 
     return 0;
 }
@@ -74,7 +68,7 @@ int terminal(){
             break;
 
         case Create_File:
-            printf("create file\n");
+            create_file(entry);
             break;
 
         case Insert:
@@ -183,16 +177,6 @@ char *get_file_path(char *address){
     return path;
 }
 
-char *get_file_name(char *address){
-    char *name;
-    name = (char*) malloc(STRING_SIZE * sizeof(char));
-    memset(name,'\0',sizeof(name));
-    strcpy(name,strrev(address));
-    strtok(name,"\\");
-    strcpy(name,strrev(name));
-    return name;
-}
-
 int file_exist(char *address){
     FILE *file;
     file = fopen(address,"r");
@@ -203,6 +187,34 @@ int file_exist(char *address){
     return 0;
 }
 
-void create_file(char *address){
+void create_path(char *address){
+    char *path , *token;
+    int cd_stat;
+    path = get_file_path(address);
+    token = strtok(path,"\\");
+    while(token != NULL){
+        cd_stat = chdir(token);
+        if(cd_stat == -1){
+            mkdir(token);
+            chdir(token);
+        }
+        token = strtok(NULL,"\\");
+    }
+    chdir(parent_directory);
+    free(path);
+    free(token);
+}
 
+void create_file(char *string){
+    char *address;
+    address = get_file_address(string);
+    if(file_exist(address)){
+        printf("Error:the file already exist!\n");
+    }
+    else {
+        create_path(address);
+        FILE *file;
+        file = fopen(address, "w");
+        fclose(file);
+    }
 }
