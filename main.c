@@ -19,13 +19,13 @@ enum commands {
 int Command_code(char *command);
 int terminal();
 long long find_word(char *string , char *word);
-char *get_file_address(char *sting);
+char *get_file_address(char *string);
 
 
 int main() {
-    char string[] = "12345 -file lkjlkjlknm";
+    char string[] = "12345 -file \"lkj lkjl \\ knm\"";
     char word[] = "-fine";
-    printf("%lld", find_word(string,word));
+    printf("%s\n",get_file_address(string));
     return 0;
 }
 
@@ -138,6 +138,24 @@ long long find_word(char *string , char *word){
     return -1;
 }
 
-char *get_file_address(char *sting){
+char *get_file_address(char *string){
+    char c;
+    char *address;
+    long long index ,i;
+    address = (char*) malloc(STRING_SIZE * sizeof(char));
+    memset(address,'\0', strlen(address));
+    index = find_word(string , "-file ");
+    index += strlen("-file ");
 
+    if(string[index] == '"'){
+        c= '"';
+        index++;
+    }
+    else
+        c = ' ';
+
+    for(i=0;string[index+i] != c; i++)
+        address[i]=string[index+i];
+
+    return address;
 }
