@@ -20,12 +20,17 @@ int Command_code(char *command);
 int terminal();
 long long find_word(char *string , char *word);
 char *get_file_address(char *string);
+char *get_file_path(char *address);
 
 
 int main() {
-    char string[] = "12345 -file \"lkj lkjl \\ knm\"";
-    char word[] = "-fine";
-    printf("%s\n",get_file_address(string));
+    char *string;
+    string = (char*) calloc(STRING_SIZE , sizeof(char));
+    gets(string);
+    char *address;
+    address = get_file_address(string);
+    printf("%s\n",address);
+    printf("%s\n", get_file_path(address));
     return 0;
 }
 
@@ -143,7 +148,7 @@ char *get_file_address(char *string){
     char *address;
     long long index ,i;
     address = (char*) malloc(STRING_SIZE * sizeof(char));
-    memset(address,'\0', strlen(address));
+    memset(address,'\0', sizeof(address));
     index = find_word(string , "-file ");
     index += strlen("-file ");
 
@@ -154,8 +159,19 @@ char *get_file_address(char *string){
     else
         c = ' ';
 
-    for(i=0;string[index+i] != c; i++)
+    for(i=0; string[index+i] != c && string[index+i] != '\0'; i++)
         address[i]=string[index+i];
 
     return address;
+}
+
+char *get_file_path(char *address){
+    char *path;
+    long long i ;
+    path = (char*) malloc(STRING_SIZE * sizeof(char));
+    memset(path , '\0', sizeof (path));
+    strcpy(path , address);
+    for( i = strlen(address) ; path [i] != '\\'; i--)
+        path[i] = '\0';
+    return path;
 }
