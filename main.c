@@ -130,79 +130,85 @@ void insert(char *_entry){
         printf("ERROR:file do not exist!\n");
 }
 
-int main() {
+int terminal(){
     char entry[STRING_SIZE];
     char command[STRING_SIZE];
+    gets(entry);
+    strcpy(command,entry);
+    strtok(command , " ");
+    switch (Command_code(command)) {
+        case Invalid:
+            printf("invalid command\n");
+            break;
+
+        case Create_File:
+            create_file(entry);
+            break;
+
+        case Insert:
+            printf("insert\n");
+            break;
+
+        case Cat:
+            printf("cat\n");
+            break;
+
+        case Remove:
+            printf("remove\n");
+            break;
+
+        case Copy:
+            printf("copy\n");
+            break;
+
+        case Cut:
+            printf("cut\n");
+            break;
+
+        case Paste:
+            printf("paste\n");
+            break;
+
+        case Find:
+            printf("find\n");
+            break;
+
+        case Replace:
+            printf("replace\n");
+            break;
+
+        case Grep:
+            printf("grep\n");
+            break;
+
+        case Undo:
+            printf("undo\n");
+            break;
+
+        case Auto_indent:
+            printf("auto indent\n");
+            break;
+
+        case Compare:
+            printf("compare\n");
+            break;
+
+        case Directory_tree:
+            printf("tree\n");
+            break;
+
+        case Exit:
+            printf("program finished\n");
+            return 0;
+
+    }
+    return 1;
+}
+
+int main() {
+
     while(1){
-        gets(entry);
-        strcpy(command,entry);
-        strtok(command , " ");
-        switch (Command_code(command)) {
-            case Invalid:
-                printf("invalid command\n");
-                break;
-
-            case Create_File:
-                create_file(entry);
-                break;
-
-            case Insert:
-                printf("insert\n");
-                break;
-
-            case Cat:
-                printf("cat\n");
-                break;
-
-            case Remove:
-                printf("remove\n");
-                break;
-
-            case Copy:
-                printf("copy\n");
-                break;
-
-            case Cut:
-                printf("cut\n");
-                break;
-
-            case Paste:
-                printf("paste\n");
-                break;
-
-            case Find:
-                printf("find\n");
-                break;
-
-            case Replace:
-                printf("replace\n");
-                break;
-
-            case Grep:
-                printf("grep\n");
-                break;
-
-            case Undo:
-                printf("undo\n");
-                break;
-
-            case Auto_indent:
-                printf("auto indent\n");
-                break;
-
-            case Compare:
-                printf("compare\n");
-                break;
-
-            case Directory_tree:
-                printf("tree\n");
-                break;
-
-            case Exit:
-                printf("program finished\n");
-                return 0;
-
-        }
+        terminal();
     }
 
 }
