@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #define STRING_SIZE 500
 
+char parent_directory[STRING_SIZE];
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -21,16 +22,22 @@ int terminal();
 long long find_word(char *string , char *word);
 char *get_file_address(char *string);
 char *get_file_path(char *address);
+char *get_file_name(char *address);
+int file_exist(char *address);
+void create_file(char *address );
 
 
 int main() {
     char *string;
+    getcwd(parent_directory,STRING_SIZE);
+    printf("%s\n",parent_directory);
+
     string = (char*) calloc(STRING_SIZE , sizeof(char));
     gets(string);
     char *address;
     address = get_file_address(string);
-    printf("%s\n",address);
-    printf("%s\n", get_file_path(address));
+    printf("%s : %d\n", address, file_exist(address));
+
     return 0;
 }
 
@@ -174,4 +181,28 @@ char *get_file_path(char *address){
     for( i = strlen(address) ; path [i] != '\\'; i--)
         path[i] = '\0';
     return path;
+}
+
+char *get_file_name(char *address){
+    char *name;
+    name = (char*) malloc(STRING_SIZE * sizeof(char));
+    memset(name,'\0',sizeof(name));
+    strcpy(name,strrev(address));
+    strtok(name,"\\");
+    strcpy(name,strrev(name));
+    return name;
+}
+
+int file_exist(char *address){
+    FILE *file;
+    file = fopen(address,"r");
+    if(file) {
+        return 1;
+        fclose(file);
+    }
+    return 0;
+}
+
+void create_file(char *address){
+
 }
