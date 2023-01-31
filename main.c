@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #define STRING_SIZE 500
 
+
 enum commands {
     Invalid, Create_File, Insert,
     Cat,Remove,Copy,
@@ -35,52 +36,54 @@ int Command_code(char *command){
     return code;
 }
 
-void find_file_address(char* __entry , char* __file_address){
-    char entry_cpy[STRING_SIZE];
-    char *token;
+void find_file_address(char* _entry , char* _file_address){
+    auto char entry_cpy[STRING_SIZE];
+    auto char *token;
 
-    strcpy(entry_cpy, __entry);
-    token = strtok(entry_cpy," "); //this token is the command.
+    strcpy(entry_cpy, _entry);
+    token = (entry_cpy," "); //this token is the command.
     token = strtok(NULL, " "); //this token is "-file" header.
     token = strtok(NULL, " "); // this token is the file address.
 
     if(*token == '"'){
-        strcpy(entry_cpy, __entry);
+        strcpy(entry_cpy, _entry);
         token = strtok(entry_cpy,"\"");
         token = strtok(NULL,"\"");
     }
 
-    strcpy(__file_address, token) ;
+    strcpy(_file_address, token) ;
 }
 
-void find_file_path(char* __file_address , char* __file_path){
-    int i;
-    for(i = strlen(__file_address) - 1; __file_address[i] != '\\'; i--);
-    strncpy(__file_path,__file_address,i);
+void find_file_path(char* _file_address , char* _file_path){
+    auto int i;
+    for(i = strlen(_file_address) - 1; _file_address[i] != '\\'; i--);
+    strncpy(_file_path, _file_address, i);
 }
 
-void find_file_name(char* __file_address , char* __file_name){
-    char address[STRING_SIZE];
-    strcpy(address , strrev(__file_address));
+void find_file_name(char* _file_address , char* _file_name){
+    auto char address[STRING_SIZE];
+    strcpy(address , strrev(_file_address));
     strtok(address , "\\");
-    strcpy(__file_name , strrev(address));
+    strcpy(_file_name , strrev(address));
 }
 
-int check_file_existence(char* __file_address){
+int check_file_existence(char* _file_address){
     FILE * file;
-    file = fopen(__file_address, "r");
+    file = fopen(_file_address, "r");
     if (file){
         fclose(file);
         return 1;
     }
-    return 0;
+    else
+        return 0;
+
 }
 
-void create_path(char* __path){
+void create_path(char* _path,char* _name){
     char path_copy[STRING_SIZE];
     char* token;
     int cd_stat;
-    strcpy(path_copy, __path);
+    strcpy(_path, _path);
     token = strtok(path_copy,"\\");
     while(token != NULL){
         cd_stat = chdir(token);
@@ -90,23 +93,41 @@ void create_path(char* __path){
         }
         token = strtok(NULL , "\\");
     }
+    FILE * file;
+    file = fopen(_name, "w");
+    fclose(file);
+    chdir("C:");
+    getcwd(path_copy,STRING_SIZE);
+    printf("%s\n",path_copy);
+
 }
 
-void create_file(char *entry){
-    char file_address[STRING_SIZE],file_path[STRING_SIZE],file_name[STRING_SIZE];
-    find_file_address(entry,file_address);
+void create_file(char *_entry){
+    char file_address[STRING_SIZE];
+    char file_path[STRING_SIZE];
+    char file_name[STRING_SIZE];
+    find_file_address(_entry, file_address);
     find_file_path(file_address , file_path);
     find_file_name(file_address , file_name);
 
     if(check_file_existence(file_address))
         printf("file already exist\n");
     else{
-        create_path(file_path);
-        FILE * file;
-        file = fopen(file_name, "w");
-        fclose(file);
+        create_path(file_path,file_name);
+
     }
 
+}
+
+void insert(char *_entry){
+    char file_address[STRING_SIZE];
+    char string[STRING_SIZE];
+    find_file_address(_entry , file_address);
+    if(check_file_existence(file_address)){
+
+    }
+    else
+        printf("ERROR:file do not exist!\n");
 }
 
 int main() {
