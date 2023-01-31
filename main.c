@@ -15,26 +15,11 @@ enum commands {
     Exit
 };
 
-int Command_code(char *command){
-    int code;
-    code = Invalid;
-    code += Create_File * !strcmp(command,"createfile");
-    code += Insert * !strcmp(command,"insertstr");
-    code += Cat * !strcmp(command,"cat");
-    code += Remove * !strcmp(command,"removestr");
-    code += Copy * !strcmp(command,"copystr");
-    code += Cut * !strcmp(command,"cutstr");
-    code += Paste * !strcmp(command,"pastestr");
-    code += Find * !strcmp(command,"find");
-    code += Replace * !strcmp(command,"replace");
-    code += Grep * !strcmp(command,"grep");
-    code += Undo * !strcmp(command,"undo");
-    code += Auto_indent * !strcmp(command,"auto-indent");
-    code += Compare * !strcmp(command,"compare");
-    code += Directory_tree * !strcmp(command,"tree");
-    code += Exit * !strcmp(command , "exit");
-    return code;
-}
+//function prototypes:
+int Command_code(char *command);
+int terminal();
+
+
 
 void find_file_address(char* _entry , char* _file_address){
     auto char entry_cpy[STRING_SIZE];
@@ -130,6 +115,36 @@ void insert(char *_entry){
         printf("ERROR:file do not exist!\n");
 }
 
+
+
+int main() {
+    while(terminal()){
+
+    }
+    return 0;
+}
+
+int Command_code(char *command){
+    int code;
+    code = Invalid;
+    code += Create_File * !strcmp(command,"createfile");
+    code += Insert * !strcmp(command,"insertstr");
+    code += Cat * !strcmp(command,"cat");
+    code += Remove * !strcmp(command,"removestr");
+    code += Copy * !strcmp(command,"copystr");
+    code += Cut * !strcmp(command,"cutstr");
+    code += Paste * !strcmp(command,"pastestr");
+    code += Find * !strcmp(command,"find");
+    code += Replace * !strcmp(command,"replace");
+    code += Grep * !strcmp(command,"grep");
+    code += Undo * !strcmp(command,"undo");
+    code += Auto_indent * !strcmp(command,"auto-indent");
+    code += Compare * !strcmp(command,"compare");
+    code += Directory_tree * !strcmp(command,"tree");
+    code += Exit * !strcmp(command , "exit");
+    return code;
+}
+
 int terminal(){
     char entry[STRING_SIZE];
     char command[STRING_SIZE];
@@ -142,7 +157,7 @@ int terminal(){
             break;
 
         case Create_File:
-            create_file(entry);
+            printf("create file\n");
             break;
 
         case Insert:
@@ -203,12 +218,4 @@ int terminal(){
 
     }
     return 1;
-}
-
-int main() {
-
-    while(1){
-        terminal();
-    }
-
 }
