@@ -21,20 +21,27 @@ enum commands {
 //function prototypes:
 int Command_code(char *command);
 int terminal();
-long long find_word(char *string , char *word);
+long long find_pattern(char *string , char *pattern);
 char *get_file_address(char *string);
 char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
 void create_file(char *string);
 void tree_recursion(const int Depth , int depth);
-int is_file(const char *address);
+int isFile(const char *address);
 void tree(char *string);
+int isBlank(char c);
+char *str_handler(char *string);
+long long pos_handler(char *string);
 
 
 int main() {
-    char *string;
     getcwd(parent_directory,STRING_SIZE);
+    char string[STRING_SIZE];
+    gets(string);
+    printf("%lld\n", pos_handler(string));
+
+
 
 
     return 0;
@@ -136,14 +143,14 @@ int terminal(){
     return 1;
 }
 
-long long find_word(char *string , char *word){
-    char temp[strlen(word)];
+long long find_pattern(char *string , char *pattern){
+    char temp[strlen(pattern)];
     long long i ,j , size ;
-    size = strlen(string) - strlen(word);
+    size = strlen(string) - strlen(pattern);
     for(i=0;i<=size;i++){
-        for(j=0;j< strlen(word);j++)
+        for(j=0;j< strlen(pattern); j++)
             temp[j]=string[i+j];
-        if(!strcmp(word,temp))
+        if(!strcmp(pattern, temp))
             return i;
     }
     return -1;
@@ -153,9 +160,8 @@ char *get_file_address(char *string){
     char c;
     char *address;
     long long index ,i;
-    address = (char*) malloc(STRING_SIZE * sizeof(char));
-    memset(address,'\0', sizeof(address));
-    index = find_word(string , "-file ");
+    address = (char*) calloc(STRING_SIZE , sizeof(char));
+    index = find_pattern(string, "-file ");
     index += strlen("-file ");
 
     if(string[index] == '"'){
@@ -224,7 +230,7 @@ void create_file(char *string){
     }
 }
 
-int is_file(const char *address){
+int isFile(const char *address){
     struct stat ps;
     stat(address, &ps);
     return S_ISREG(ps.st_mode);
@@ -243,7 +249,7 @@ void tree_recursion(const int Depth , int depth){
                 printf("\t");
             printf("|__%s\n", de->d_name);
         }
-        if (!is_file(de->d_name)) {
+        if (!isFile(de->d_name)) {
             chdir(de->d_name);
             tree_recursion(Depth, depth - 1);
             chdir("..");
@@ -261,3 +267,84 @@ void tree(char *string){
     tree_recursion(depth, depth);
     chdir(parent_directory);
 }
+
+int isBlank(char c){
+    int result = 0;
+    result += (c == ' ');
+    result += (c == '\n');
+    result += (c == '\0');
+    return result;
+}
+
+char *str_handler(char *string){
+    char *str;
+    long long index ,i,j=0;
+    str = (char*) calloc(STRING_SIZE , sizeof(char));
+    index = find_pattern(string, "-str ");
+    index += strlen("-str ");
+
+    if(string[index] == '"'){
+        index++;
+        for(i=index; string[i] != '"' && string[i-1] != '\\'; i++) {
+            if(string[i] == '\\'){
+                i++;
+                switch (string[i]){
+                    case '\\':
+                        str[j] = '\\';
+                        break;
+                    case '"':
+                        str[j] = '"';
+                        break;
+                    case 'n':
+                        str[j] = '\n';
+                        break;
+                    case 't':
+                        str[j] = '\t';
+                        break;
+                }
+            }
+            else
+                str[j] = string[i];
+            j++;
+        }
+    }
+    else
+        for(i=0; string[index+i] != ' ' && string[index+i] != '\0'; i++)
+            str[i]=string[index + i];
+
+
+    return str;
+}
+
+long long pos_handler(char *string){
+    long long lineNo , charNo , line_cnt=0 , char_cnt = 0 ,pos = 0;
+    char *pos_str;
+    char *address;
+    char c = 0;
+    long long index ,i;
+    pos_str = (char*) calloc(STRING_SIZE , sizeof(char));
+    address = (char*) calloc(STRING_SIZE , sizeof(char));
+    index = find_pattern(string, "-pos ");
+    index += strlen("-pos ");
+
+    for(i=0; string[index+i] != ' ' && string[index+i] != '\0'; i++)
+        pos_str[i]=string[index + i];
+
+    sscanf(pos_str,"%lld:%lld",&lineNo,&charNo);
+
+    address = get_file_address(string);
+    FILE *file = fopen(address,"r");
+    while(c != EOF){
+        c = fgetc(file) ;
+        if (lineNo == line_cnt && charNo == char_cnt)
+            return pos ;
+        pos ++;
+        char_cnt ++ ;
+        if(c == '\n'){
+            char_cnt = 0 ;
+            line_cnt ++ ;
+        }
+    }
+    return -1;
+}
+
