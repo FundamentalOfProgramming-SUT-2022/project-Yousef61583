@@ -3,7 +3,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <dirent.h>
 #define STRING_SIZE 500
+#define TEXT_SIZE 100000
 
 char parent_directory[STRING_SIZE];
 
@@ -25,6 +27,9 @@ char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
 void create_file(char *string);
+void tree_recursion(const int Depth , int depth);
+int is_file(const char *address);
+void tree(char *string);
 
 
 int main() {
@@ -120,7 +125,7 @@ int terminal(){
             break;
 
         case Directory_tree:
-            printf("tree\n");
+            tree(entry);
             break;
 
         case Exit:
@@ -217,4 +222,42 @@ void create_file(char *string){
         file = fopen(address, "w");
         fclose(file);
     }
+}
+
+int is_file(const char *address){
+    struct stat ps;
+    stat(address, &ps);
+    return S_ISREG(ps.st_mode);
+}
+
+void tree_recursion(const int Depth , int depth){
+    struct dirent *de;
+    DIR *dr = opendir(".");
+    if (dr == NULL || depth ==0){
+        return;
+    }
+
+    while ((de = readdir(dr)) != NULL) {
+        if (de->d_name[0] != '.') {
+            for (int i = 0; i < Depth - depth; i++)
+                printf("\t");
+            printf("|__%s\n", de->d_name);
+        }
+        if (!is_file(de->d_name)) {
+            chdir(de->d_name);
+            tree_recursion(Depth, depth - 1);
+            chdir("..");
+        }
+    }
+
+    closedir(dr);
+}
+
+void tree(char *string){
+    int depth;
+    sscanf(string,"tree %d",&depth);
+    chdir("root");
+    printf("root\n");
+    tree_recursion(depth, depth);
+    chdir(parent_directory);
 }
