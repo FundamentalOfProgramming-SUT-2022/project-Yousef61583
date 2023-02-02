@@ -8,6 +8,7 @@
 #define TEXT_SIZE 100000
 
 char parent_directory[STRING_SIZE];
+char clipBord_directory[STRING_SIZE];
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -40,12 +41,15 @@ void print_file(char *address);
 void cat(char *string);
 long long size_handler(char *string);
 void removeStr(char *string);
+void start_program();
+void copyStr(char *string);
 
 int main() {
-    getcwd(parent_directory,STRING_SIZE);
+    start_program();
     char string[STRING_SIZE];
     gets(string);
-    removeStr(string);
+    copyStr(string);
+
     return 0;
 }
 
@@ -94,11 +98,11 @@ int terminal(){
             break;
 
         case Remove:
-            printf("remove\n");
+            removeStr(entry);
             break;
 
         case Copy:
-            printf("copy\n");
+            copyStr(entry);
             break;
 
         case Cut:
@@ -194,8 +198,8 @@ int file_exist(char *address){
     FILE *file;
     file = fopen(address,"r");
     if(file) {
-        return 1;
         fclose(file);
+        return 1;
     }
     return 0;
 }
@@ -494,4 +498,61 @@ void removeStr(char *string){
     }
     fclose(file);
     fclose(undo_file);
+}
+
+void start_program() {
+    getcwd(parent_directory, STRING_SIZE);
+    puts(parent_directory);
+    strcpy(clipBord_directory, parent_directory);
+    strcat(clipBord_directory, "\\clipBord.txt");
+    if (!file_exist(clipBord_directory)) {
+        FILE *ClipBord;
+        ClipBord = fopen(clipBord_directory, "w");
+        fclose(ClipBord);
+    }
+    if (chdir("root") == -1) {
+        mkdir("root");
+    }
+    chdir(parent_directory);
+}
+
+void copyStr(char *string){
+    char *address;
+    long long pos , size , start , end , i = 0;
+    char fb_header ,c;
+    FILE *file , *clipBord;
+    address = address_handler(string);
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+    pos = pos_handler(string);
+    size = size_handler(string);
+    fb_header = string [ strlen(string) - 1];
+    if(pos == -1){
+        printf("Error: invalid position\n");
+        return;
+    }
+    if(size < 1){
+        printf("Error: size should be greater than zero\n");
+        return;
+    }
+    if(fb_header != 'b' && fb_header != 'f'){
+        printf("Error:wrong -f -b header\n");
+        return;
+    }
+    start = pos - size * (fb_header == 'b');
+    start *= (start > 0);
+    end = pos + size * (fb_header == 'f') ;
+    file = fopen(address , "r");
+    clipBord  = fopen( clipBord_directory , "w");
+    c = fgetc(file);
+    while(c != EOF){
+        if( i >= start && i < end )
+            fputc(c, clipBord);
+        c = fgetc(file);
+        i++;
+    }
+    fclose(file);
+    fclose(clipBord);
 }
