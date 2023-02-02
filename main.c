@@ -41,11 +41,10 @@ void print_file(char *address);
 void cat(char *string);
 long long size_handler(char *string);
 void removeStr(char *string);
-void remove_function(FILE *dest,FILE *source,long long start,long long end);
 void start_program();
 void copyStr(char *string);
-void copy_function(FILE *dest,FILE *source,long long start,long long end);
 void cutStr(char *string);
+void pasteStr(char *string);
 
 
 int main() {
@@ -53,6 +52,8 @@ int main() {
     char string[STRING_SIZE];
     gets(string);
     cutStr(string);
+    gets(string);
+    pasteStr(string);
 
 
     return 0;
@@ -115,7 +116,7 @@ int terminal(){
             break;
 
         case Paste:
-            printf("paste\n");
+            pasteStr(entry);
             break;
 
         case Find:
@@ -466,8 +467,8 @@ long long size_handler(char *string){
 
 void removeStr(char *string){
     char *address;
-    long long pos , size , start , end ;
-    char fb_header ;
+    long long pos , size , start , end , i=0;
+    char fb_header ,c;
     FILE *file, *undo_file;
     address = address_handler(string);
     if(!file_exist(address)){
@@ -494,26 +495,19 @@ void removeStr(char *string){
     end = pos + size * (fb_header == 'f') ;
     undo_file = make_undo_file(address);
     file = fopen(address , "w");
-    remove_function(file , undo_file , start ,end);
+    c = fgetc(undo_file);
+    while(c != EOF){
+        if( i < start || i >= end )
+            fputc(c, file);
+        c = fgetc(undo_file);
+        i++;
+    }
     fclose(file);
     fclose(undo_file);
 }
 
-void remove_function(FILE *dest,FILE *source,long long start,long long end){
-    char c;
-    long long i= 0 ;
-    c = fgetc(source);
-    while(c != EOF){
-        if( i < start || i >= end )
-            fputc(c, dest);
-        c = fgetc(source);
-        i++;
-    }
-}
-
 void start_program() {
     getcwd(parent_directory, STRING_SIZE);
-    puts(parent_directory);
     strcpy(clipBord_directory, parent_directory);
     strcat(clipBord_directory, "\\clipBord.txt");
     if (!file_exist(clipBord_directory)) {
@@ -529,8 +523,8 @@ void start_program() {
 
 void copyStr(char *string){
     char *address;
-    long long pos , size , start , end ;
-    char fb_header ;
+    long long pos , size , start , end , i=0;
+    char fb_header  , c;
     FILE *file , *clipBord;
     address = address_handler(string);
     if(!file_exist(address)){
@@ -557,27 +551,21 @@ void copyStr(char *string){
     end = pos + size * (fb_header == 'f') ;
     file = fopen(address , "r");
     clipBord  = fopen( clipBord_directory , "w");
-    copy_function(clipBord , file , start ,end);
+    c = fgetc(file);
+    while(c != EOF){
+        if( i >= start && i < end )
+            fputc(c, clipBord);
+        c = fgetc(file);
+        i++;
+    }
     fclose(file);
     fclose(clipBord);
 }
 
-void copy_function(FILE *dest,FILE *source,long long start,long long end){
-    char c;
-    long long i=0;
-    c = fgetc(source);
-    while(c != EOF){
-        if( i >= start && i < end )
-            fputc(c, dest);
-        c = fgetc(source);
-        i++;
-    }
-}
-
 void cutStr(char *string){
     char *address;
-    long long pos , size , start , end ;
-    char fb_header ;
+    long long pos , size , start , end , i=0 ;
+    char fb_header , c ;
     FILE *file, *undo_file , *clipBord;
     address = address_handler(string);
     if(!file_exist(address)){
@@ -605,11 +593,62 @@ void cutStr(char *string){
     undo_file = make_undo_file(address);
     file = fopen(address , "r");
     clipBord = fopen(clipBord_directory , "w");
-    copy_function(clipBord , file , start ,end);
-    fclose(file);
-    file = fopen(address , "w");
-    remove_function(file , undo_file , start ,end);
+    c = fgetc(file);
+    while(c != EOF){
+        if( i >= start && i < end )
+            fputc(c, clipBord);
+        c = fgetc(file);
+        i++;
+    }
     fclose(file);
     fclose(clipBord);
+    file = fopen(address , "w");
+    i=0;
+    c = fgetc(undo_file);
+    while(c != EOF){
+        if( i < start || i >= end )
+            fputc(c, file);
+        c = fgetc(undo_file);
+        i++;
+    }
+    fclose(file);
     fclose( undo_file);
+}
+
+void pasteStr(char *string){
+    char *address;
+    char c;
+    long long pos;
+    FILE *file;
+    FILE *undo_file;
+    FILE *clipBord;
+    address = address_handler(string);
+    pos = pos_handler(string);
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+    if(pos == -1){
+        printf("Error: invalid position\n");
+        return;
+    }
+    undo_file = make_undo_file(address);
+    clipBord = fopen(clipBord_directory , "r");
+    file = fopen(address,"w");
+    for(long long i = 0 ; i < pos ; i++){
+        c = fgetc(undo_file);
+        fputc(c , file);
+    }
+    c = fgetc(clipBord);
+    while(c != EOF){
+        fputc(c ,file);
+        c = fgetc(clipBord);
+    }
+    c = fgetc(undo_file);
+    while(c != EOF){
+        fputc(c ,file);
+        c = fgetc(undo_file);
+    }
+    fclose(file);
+    fclose(undo_file);
 }
