@@ -36,20 +36,14 @@ long long pos_handler(char *__string);
 void copy_file(FILE *dest, FILE *source);
 FILE *make_undo_file(char *file_address);
 void insertStr(char *string);
-
+void print_file(char *address);
+void cat(char *string);
 
 int main() {
     getcwd(parent_directory,STRING_SIZE);
     char string[STRING_SIZE];
     gets(string);
-    char *address;
-    address = address_handler(string);
-    printf("%s\n",address);
-    printf("%lld",pos_handler(string));
-     insertStr(string);
-
-
-
+    cat(string);
 
     return 0;
 }
@@ -91,7 +85,7 @@ int terminal(){
             break;
 
         case Insert:
-            printf("insert\n");
+            insertStr(entry);
             break;
 
         case Cat:
@@ -421,4 +415,30 @@ void insertStr(char *string){
         fputc(c ,file);
         c = fgetc(undo_file);
     }
+}
+
+void print_file(char *address){
+    FILE *fp ;
+    char c;
+    printf("check\n");
+    fp = fopen(address,"r");
+    c = fgetc(fp);
+    printf("check\n");
+    while(c!=EOF){
+        printf("%c",c);
+        c = fgetc(fp);
+    }
+    printf("check\n");
+    fclose(fp);
+}
+
+void cat(char *string){
+    char *address;
+    address = address_handler(string);
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+    print_file(address);
+
 }
