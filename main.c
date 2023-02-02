@@ -22,7 +22,7 @@ enum commands {
 int Command_code(char *command);
 int terminal();
 long long find_pattern(char *string , char *pattern);
-char *get_file_address(char *string);
+char *address_handler(char *string);
 char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
@@ -32,14 +32,21 @@ int isFile(const char *address);
 void tree(char *string);
 int isBlank(char c);
 char *str_handler(char *string);
-long long pos_handler(char *string);
+long long pos_handler(char *__string);
+void copy_file(FILE *dest, FILE *source);
+FILE *make_undo_file(char *file_address);
+void insertStr(char *string);
 
 
 int main() {
     getcwd(parent_directory,STRING_SIZE);
     char string[STRING_SIZE];
     gets(string);
-    printf("%lld\n", pos_handler(string));
+    char *address;
+    address = address_handler(string);
+    printf("%s\n",address);
+    printf("%lld",pos_handler(string));
+     insertStr(string);
 
 
 
@@ -156,7 +163,7 @@ long long find_pattern(char *string , char *pattern){
     return -1;
 }
 
-char *get_file_address(char *string){
+char *address_handler(char *string){
     char c;
     char *address;
     long long index ,i;
@@ -180,11 +187,13 @@ char *get_file_address(char *string){
 char *get_file_path(char *address){
     char *path;
     long long i ;
-    path = (char*) malloc(STRING_SIZE * sizeof(char));
-    memset(path , '\0', sizeof (path));
+    path = (char*) calloc(STRING_SIZE , sizeof(char));
     strcpy(path , address);
-    for( i = strlen(address) ; path [i] != '\\'; i--)
+    printf("path is:%s\n",path);
+    for( i = strlen(address) ; path [i] != '\\'; i--) {
         path[i] = '\0';
+    }
+    printf("path :%s \n",path);
     return path;
 }
 
@@ -218,7 +227,7 @@ void create_path(char *address){
 
 void create_file(char *string){
     char *address;
-    address = get_file_address(string);
+    address = address_handler(string);
     if(file_exist(address)){
         printf("Error:the file already exist!\n");
     }
@@ -316,28 +325,29 @@ char *str_handler(char *string){
     return str;
 }
 
-long long pos_handler(char *string){
-    long long lineNo , charNo , line_cnt=0 , char_cnt = 0 ,pos = 0;
+long long pos_handler(char *__string){
+    long long lineNo , charNo , line_cnt=1 , char_cnt = 0 ,pos = 0;
     char *pos_str;
     char *address;
     char c = 0;
     long long index ,i;
     pos_str = (char*) calloc(STRING_SIZE , sizeof(char));
-    address = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(string, "-pos ");
+    index = find_pattern(__string, "-pos ");
     index += strlen("-pos ");
 
-    for(i=0; string[index+i] != ' ' && string[index+i] != '\0'; i++)
-        pos_str[i]=string[index + i];
+    for(i=0; __string[index + i] != ' ' && __string[index + i] != '\0'; i++)
+        pos_str[i]=__string[index + i];
+
 
     sscanf(pos_str,"%lld:%lld",&lineNo,&charNo);
-
-    address = get_file_address(string);
+    address = address_handler(__string);
     FILE *file = fopen(address,"r");
     while(c != EOF){
         c = fgetc(file) ;
-        if (lineNo == line_cnt && charNo == char_cnt)
+        if (lineNo == line_cnt && charNo == char_cnt){
+            fclose(file);
             return pos ;
+        }
         pos ++;
         char_cnt ++ ;
         if(c == '\n'){
@@ -345,6 +355,70 @@ long long pos_handler(char *string){
             line_cnt ++ ;
         }
     }
+    fclose(file);
     return -1;
 }
 
+void copy_file(FILE *dest, FILE *source){
+    char c;
+    while ((c = fgetc(source)) != EOF)
+        fputc(c, dest);
+}
+
+FILE *make_undo_file(char *file_address){
+    char *name;
+    char *undo_file_path;
+    char address[STRING_SIZE];
+    FILE *undo_file;
+    FILE *file;
+    strcpy(address , file_address);
+    name = strrev(address);
+    strtok(name , "\\");printf("check\n");
+    name =strrev(name) ;
+    undo_file_path = get_file_path(file_address);
+    strcat( undo_file_path , ".undo_");
+    strcat( undo_file_path , name);
+    undo_file = fopen(undo_file_path , "w");
+    file = fopen (file_address , "r");
+    copy_file(undo_file , file);
+    fclose(file);
+    fclose(undo_file);
+    undo_file = fopen(undo_file_path , "r");
+    return undo_file;
+}
+
+void insertStr(char *string){
+    char *str;
+    char *address;
+    char c;
+    long long pos;
+    FILE *file;
+    FILE *undo_file;
+    address = address_handler(string);
+    str  = str_handler(string);
+    pos = pos_handler(string);
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+
+    if(pos == -1){
+        printf("Error: invalid position\n");
+        return;
+    }
+    undo_file = make_undo_file(address);
+    file = fopen(address,"w");
+    for(long long i = 0 ; i < pos ; i++){
+        c = fgetc(undo_file);
+        fputc(c , file);
+    }
+
+    for(long long i = 0 ; i < strlen ( str ) ; i ++)
+        fputc(str[i], file);
+
+    c = fgetc(undo_file);
+    while(c != EOF){
+        fputc(c ,file);
+        c = fgetc(undo_file);
+    }
+}
