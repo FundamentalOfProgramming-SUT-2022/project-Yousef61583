@@ -45,8 +45,7 @@ int main() {
     getcwd(parent_directory,STRING_SIZE);
     char string[STRING_SIZE];
     gets(string);
-    printf("%lld\n", size_handler(string));
-
+    removeStr(string);
     return 0;
 }
 
@@ -185,11 +184,9 @@ char *get_file_path(char *address){
     long long i ;
     path = (char*) calloc(STRING_SIZE , sizeof(char));
     strcpy(path , address);
-    printf("path is:%s\n",path);
     for( i = strlen(address) ; path [i] != '\\'; i--) {
         path[i] = '\0';
     }
-    printf("path :%s \n",path);
     return path;
 }
 
@@ -369,7 +366,7 @@ FILE *make_undo_file(char *file_address){
     FILE *file;
     strcpy(address , file_address);
     name = strrev(address);
-    strtok(name , "\\");printf("check\n");
+    strtok(name , "\\");
     name =strrev(name) ;
     undo_file_path = get_file_path(file_address);
     strcat( undo_file_path , ".undo_");
@@ -397,18 +394,17 @@ void insertStr(char *string){
         printf("Error: file does not exist!\n");
         return;
     }
-
     if(pos == -1){
         printf("Error: invalid position\n");
         return;
     }
+
     undo_file = make_undo_file(address);
     file = fopen(address,"w");
     for(long long i = 0 ; i < pos ; i++){
         c = fgetc(undo_file);
         fputc(c , file);
     }
-
     for(long long i = 0 ; i < strlen ( str ) ; i ++)
         fputc(str[i], file);
 
@@ -417,6 +413,8 @@ void insertStr(char *string){
         fputc(c ,file);
         c = fgetc(undo_file);
     }
+    fclose(file);
+    fclose(undo_file);
 }
 
 void print_file(char *address){
@@ -459,14 +457,41 @@ long long size_handler(char *string){
 
 void removeStr(char *string){
     char *address;
-    long long pos , size , start , end;
-    char fb_header;
-    FILE *fp, *undo_fp;
+    long long pos , size , start , end , i = 0;
+    char fb_header ,c;
+    FILE *file, *undo_file;
     address = address_handler(string);
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
     pos = pos_handler(string);
     size = size_handler(string);
     fb_header = string [ strlen(string) - 1];
-    if(!file_exist(address)){
-
+    if(pos == -1){
+        printf("Error: invalid position\n");
+        return;
     }
+    if(size < 1){
+        printf("Error: size should be greater than zero\n");
+        return;
+    }
+    if(fb_header != 'b' && fb_header != 'f'){
+        printf("Error:wrong -f -b header\n");
+        return;
+    }
+    start = pos - size * (fb_header == 'b');
+    start *= (start > 0);
+    end = pos + size * (fb_header == 'f') ;
+    undo_file = make_undo_file(address);
+    file = fopen(address , "w");
+    c = fgetc(undo_file);
+    while(c != EOF){
+        if( i < start || i >= end )
+            fputc(c, file);
+        c = fgetc(undo_file);
+        i++;
+    }
+    fclose(file);
+    fclose(undo_file);
 }
