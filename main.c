@@ -32,18 +32,20 @@ int isFile(const char *address);
 void tree(char *string);
 int isBlank(char c);
 char *str_handler(char *string);
-long long pos_handler(char *__string);
+long long pos_handler(char *string);
 void copy_file(FILE *dest, FILE *source);
 FILE *make_undo_file(char *file_address);
 void insertStr(char *string);
 void print_file(char *address);
 void cat(char *string);
+long long size_handler(char *string);
+void removeStr(char *string);
 
 int main() {
     getcwd(parent_directory,STRING_SIZE);
     char string[STRING_SIZE];
     gets(string);
-    cat(string);
+    printf("%lld\n", size_handler(string));
 
     return 0;
 }
@@ -89,7 +91,7 @@ int terminal(){
             break;
 
         case Cat:
-            printf("cat\n");
+            cat(entry);
             break;
 
         case Remove:
@@ -319,22 +321,22 @@ char *str_handler(char *string){
     return str;
 }
 
-long long pos_handler(char *__string){
+long long pos_handler(char *string){
     long long lineNo , charNo , line_cnt=1 , char_cnt = 0 ,pos = 0;
     char *pos_str;
     char *address;
     char c = 0;
     long long index ,i;
     pos_str = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(__string, "-pos ");
+    index = find_pattern(string, "-pos ");
     index += strlen("-pos ");
 
-    for(i=0; __string[index + i] != ' ' && __string[index + i] != '\0'; i++)
-        pos_str[i]=__string[index + i];
+    for(i=0; string[index + i] != ' ' && string[index + i] != '\0'; i++)
+        pos_str[i]=string[index + i];
 
 
     sscanf(pos_str,"%lld:%lld",&lineNo,&charNo);
-    address = address_handler(__string);
+    address = address_handler(string);
     FILE *file = fopen(address,"r");
     while(c != EOF){
         c = fgetc(file) ;
@@ -441,4 +443,30 @@ void cat(char *string){
     }
     print_file(address);
 
+}
+
+long long size_handler(char *string){
+    long long size =0 , index , i ;
+    char *size_str;
+    size_str = (char*) calloc(STRING_SIZE, sizeof(char));
+    index = find_pattern(string , "-size ");
+    index += strlen("-size ");
+    for( i = 0 ; string[i+index] != ' ' && string[index + i] != '\0' ; i++)
+        size_str[i] = string[i + index];
+    sscanf(size_str , "%lld" , &size);
+    return size ;
+}
+
+void removeStr(char *string){
+    char *address;
+    long long pos , size , start , end;
+    char fb_header;
+    FILE *fp, *undo_fp;
+    address = address_handler(string);
+    pos = pos_handler(string);
+    size = size_handler(string);
+    fb_header = string [ strlen(string) - 1];
+    if(!file_exist(address)){
+
+    }
 }
