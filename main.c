@@ -22,7 +22,7 @@ enum commands {
 //function prototypes:
 int Command_code(char *command);
 int terminal();
-long long find_pattern(char *string , char *pattern);
+long long find_pattern(char *string , char *pattern , long long index);
 char *address_handler(char *string);
 char *get_file_path(char *address);
 int file_exist(char *address);
@@ -45,15 +45,24 @@ void start_program();
 void copyStr(char *string);
 void cutStr(char *string);
 void pasteStr(char *string);
+long long byWord(char *string ,long long index );
 
 
 int main() {
-    start_program();
-    char string[STRING_SIZE];
-    gets(string);
-    cutStr(string);
-    gets(string);
-    pasteStr(string);
+    // start_program();
+    char string[] = "   hello world   batman   bat   \n bat    bat aaa ";
+    char word[] = "bat";
+    long long i , j=0 ;
+    i = find_pattern( string , word , j);
+    printf("i:%lld\n", i);
+    while(i != -1){
+        j  = i + strlen ( word) ;
+        if(isBlank(string[j]))
+            printf("%lld %lld\n",j, byWord(string,j));
+        i = find_pattern( string , word , j);
+    }
+
+
 
 
     return 0;
@@ -155,13 +164,14 @@ int terminal(){
     return 1;
 }
 
-long long find_pattern(char *string , char *pattern){
+long long find_pattern(char *string , char *pattern ,  long long index){
     char temp[strlen(pattern)];
     long long i ,j , size ;
     size = strlen(string) - strlen(pattern);
-    for(i=0;i<=size;i++){
+    for(i= index ; i<=size ;i++){
         for(j=0;j< strlen(pattern); j++)
             temp[j]=string[i+j];
+        temp[strlen(pattern)]= '\0';
         if(!strcmp(pattern, temp))
             return i;
     }
@@ -173,7 +183,7 @@ char *address_handler(char *string){
     char *address;
     long long index ,i;
     address = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(string, "-file ");
+    index = find_pattern(string, "-file " ,0);
     index += strlen("-file ");
 
     if(string[index] == '"'){
@@ -292,7 +302,7 @@ char *str_handler(char *string){
     char *str;
     long long index ,i,j=0;
     str = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(string, "-str ");
+    index = find_pattern(string, "-str " , 0);
     index += strlen("-str ");
 
     if(string[index] == '"'){
@@ -335,7 +345,7 @@ long long pos_handler(char *string){
     char c = 0;
     long long index ,i;
     pos_str = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(string, "-pos ");
+    index = find_pattern(string, "-pos ", 0);
     index += strlen("-pos ");
 
     for(i=0; string[index + i] != ' ' && string[index + i] != '\0'; i++)
@@ -457,7 +467,7 @@ long long size_handler(char *string){
     long long size =0 , index , i ;
     char *size_str;
     size_str = (char*) calloc(STRING_SIZE, sizeof(char));
-    index = find_pattern(string , "-size ");
+    index = find_pattern(string, "-size " , 0);
     index += strlen("-size ");
     for( i = 0 ; string[i+index] != ' ' && string[index + i] != '\0' ; i++)
         size_str[i] = string[i + index];
@@ -651,4 +661,11 @@ void pasteStr(char *string){
     }
     fclose(file);
     fclose(undo_file);
+}
+
+long long byWord(char *string ,long long index ){
+    long long word_count = 1;
+    for( long long i =1  ; i <  index ; i ++)
+        word_count += !isBlank(string[i-1])* isBlank(string[i]);
+    return word_count ;
 }
