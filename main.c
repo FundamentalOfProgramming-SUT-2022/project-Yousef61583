@@ -19,6 +19,11 @@ enum commands {
     Exit
 };
 
+enum find_modes{
+    Simple,At_end,At_start,
+    Pattern,At_end_in_sentence , At_start_in_sentence
+};
+
 //function prototypes:
 int Command_code(char *command);
 int terminal();
@@ -46,24 +51,47 @@ void copyStr(char *string);
 void cutStr(char *string);
 void pasteStr(char *string);
 long long byWord(char *string ,long long index );
+char *find_mode(char *string , int *mode);
 
 
 int main() {
     // start_program();
-    char string[] = "   hello world   batman   bat   \n bat    bat aaa ";
-    char word[] = "bat";
-    long long i , j=0 ;
+    char string[] = "bat *manmorde";
+    char word[] = "bat *manmorde";
+    char *temp;
+    int mode =55 ;
+    temp = find_mode(word , &mode);
+    printf("mode:%d. \nword:%s. \ntemp:%s.\n",mode , word , temp);
+
+
+/*
+    int byWord_command = 1;
+    int at_command =3;
+    int all_command = 1;
+    int count_command = 1;
+
+    int outPut_condition ;
+    int find_condition ;
+    long long i , j=0  , out;
+    int count =0;
     i = find_pattern( string , word , j);
-    printf("i:%lld\n", i);
+
     while(i != -1){
         j  = i + strlen ( word) ;
-        if(isBlank(string[j]))
-            printf("%lld %lld\n",j, byWord(string,j));
+        find_condition = isBlank(string[j]);
+        if(find_condition){
+            count ++;
+            out = (!byWord_command) * j + byWord_command * byWord(string , j);
+            outPut_condition = (count == at_command || all_command) * !count_command ;
+            if(outPut_condition)
+                printf("%d:%lld \n" ,count, out);
+        }
+
         i = find_pattern( string , word , j);
     }
-
-
-
+    if(count_command)
+        printf("count is:%d\n",count);
+*/
 
     return 0;
 }
@@ -668,4 +696,53 @@ long long byWord(char *string ,long long index ){
     for( long long i =1  ; i <  index ; i ++)
         word_count += !isBlank(string[i-1])* isBlank(string[i]);
     return word_count ;
+}
+
+char *find_mode(char *string , int *mode){
+    if(find_pattern(string , "*" ,0) == -1){
+        *mode = Simple;
+        return NULL;
+    }
+    if(string[strlen(string)-1] == '*' && string[0]=='*'){
+        string[strlen(string)-1] = '\0';
+        strrev(string);
+        string[strlen(string)-1] = '\0';
+        strrev(string);
+        *mode = Pattern;
+        return NULL;
+    }
+    if(string[strlen(string)-1] == '*'){
+        string[strlen(string)-1] = '\0';
+        *mode = At_end ;
+        return NULL;
+    }
+    if(string[0]=='*'){
+        strrev(string);
+        string[strlen(string)-1] = '\0';
+        strrev(string);
+        *mode = At_start ;
+        return NULL;
+    }
+    if(find_pattern(string , "* " , 0) != -1){
+        char *temp;
+        temp = (char*) calloc(STRING_SIZE , sizeof(char));
+        for(long long i = 0 ; i < strlen(string) - (find_pattern(string , "* " , 0) + 2); i++)
+            temp[i] = string [ i + find_pattern(string , "* " , 0) + 2];
+        temp[strlen(string) - (find_pattern(string , "* " , 0) + 2)] = '\0';
+        *mode = At_end_in_sentence ;
+        strtok(string , "* ");
+        return temp ;
+    }
+    if(find_pattern(string ," *" , 0) != -1){
+        char *temp;
+        temp = (char*) calloc(STRING_SIZE , sizeof(char));
+        for(long long i = 0 ; i < find_pattern(string , " *" , 0) ; i++)
+            temp[i] = string [ i ];
+        temp[find_pattern(string , " *" , 0)] = '\0';
+        *mode = At_start_in_sentence ;
+        strrev(string);
+        strtok(string , " *");
+        strrev(string);
+        return temp ;
+    }
 }
