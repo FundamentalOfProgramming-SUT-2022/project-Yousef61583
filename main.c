@@ -56,42 +56,110 @@ char *find_mode(char *string , int *mode);
 
 int main() {
     // start_program();
-    char string[] = "bat *manmorde";
-    char word[] = "bat *manmorde";
+    char string[] = "hhhjh ab fg";
+    char word[] = "ab* fg";
     char *temp;
-    int mode =55 ;
+    int mode =0 ;
     temp = find_mode(word , &mode);
-    printf("mode:%d. \nword:%s. \ntemp:%s.\n",mode , word , temp);
 
 
-/*
+
     int byWord_command = 1;
     int at_command =3;
     int all_command = 1;
-    int count_command = 1;
+    int count_command = 0;
 
     int outPut_condition ;
     int find_condition ;
-    long long i , j=0  , out;
+    long long i , start_index ,end_index=0 ,middle_index  , out;
     int count =0;
-    i = find_pattern( string , word , j);
-
+    i = find_pattern(string , word , end_index);
     while(i != -1){
-        j  = i + strlen ( word) ;
-        find_condition = isBlank(string[j]);
-        if(find_condition){
-            count ++;
-            out = (!byWord_command) * j + byWord_command * byWord(string , j);
-            outPut_condition = (count == at_command || all_command) * !count_command ;
-            if(outPut_condition)
-                printf("%d:%lld \n" ,count, out);
+        switch (mode){
+            case Simple:
+                start_index = i ;
+                end_index  = i + strlen (word) ;
+                if(start_index == 0)
+                    find_condition = (isBlank(string[end_index]) );
+                else
+                    find_condition = (isBlank(string[start_index - 1])) * (isBlank(string[end_index]));
+                break;
+
+            case At_end:
+                start_index = i ;
+                end_index  = i + strlen (word) ;
+                while(!isBlank(string[end_index]))
+                    end_index++;
+                if(start_index == 0)
+                    find_condition = 1 ;
+                else
+                    find_condition = isBlank(string[start_index-1]);
+                break;
+
+            case At_start:
+                start_index = i ;
+                while(start_index>0 && !isBlank(string[start_index - 1]))
+                    start_index -- ;
+                end_index = i + strlen(word);
+                find_condition = isBlank(string[end_index]);
+                break;
+
+            case Pattern:
+                find_condition = 1 ;
+                start_index = i ;
+                end_index  = i + strlen (word) ;
+                while(start_index>0 && !isBlank(string[start_index - 1]))
+                    start_index -- ;
+                while(!isBlank(string[end_index]))
+                    end_index++;
+                break;
+
+            case At_end_in_sentence:
+                start_index = i ;
+                middle_index = i + strlen (word);
+                while(!isBlank(string[middle_index]))
+                    middle_index ++;
+                end_index = middle_index + 1 + strlen(temp) ;
+                if(start_index == 0) {
+                    find_condition = isBlank(string[middle_index]);
+                    find_condition *= (find_pattern(string , temp ,middle_index) == middle_index +1);
+                    find_condition *= isBlank(string[end_index]);
+                }
+                else {
+                    find_condition = isBlank(string[middle_index]);
+                    find_condition *= isBlank(string[start_index - 1]) ;
+                    find_condition *= (find_pattern(string , temp ,middle_index) == middle_index +1);
+                    find_condition *= isBlank(string[end_index]);
+                }
+                break;
+
+            case At_start_in_sentence:
+                middle_index = i ;
+                while(middle_index>0 && !isBlank(string[middle_index - 1]))
+                    middle_index --;
+                start_index = middle_index - strlen(temp) -1 ;
+                end_index = i + strlen(word);
+                find_condition = (start_index >= 0);
+                find_condition *= isBlank(string [middle_index -1] );
+                find_condition *= isBlank(string[end_index]);
+                find_condition *= (find_pattern(string , temp , start_index) == start_index);
+                break;
         }
 
-        i = find_pattern( string , word , j);
+        if(find_condition){
+            count ++;
+            out = (!byWord_command) * start_index + byWord_command * byWord(string , start_index);
+            outPut_condition = (count == at_command || all_command) * !count_command ;
+            if(outPut_condition)
+                printf("%d:start:%lld middle:%lld  end:%lld , out:%lld \n" ,count,start_index,middle_index,end_index, out);
+        }
+        printf("middle:%lld\n",middle_index);
+
+        i = find_pattern(string , word , end_index);
     }
     if(count_command)
         printf("count is:%d\n",count);
-*/
+
 
     return 0;
 }
