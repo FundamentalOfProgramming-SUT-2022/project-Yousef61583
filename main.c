@@ -52,7 +52,7 @@ void cutStr(char *string);
 void pasteStr(char *string);
 long long byWord(char *string ,long long index );
 char *find_mode(char *string , int *mode);
-
+int Find_condition(int mode ,long long i ,long long *start_index , long long *end_index , char *string , char *word , char *temp);
 
 int main() {
     // start_program();
@@ -75,6 +75,8 @@ int main() {
     int count =0;
     i = find_pattern(string , word , end_index);
     while(i != -1){
+
+        /*
         switch (mode){
             case Simple:
                 start_index = i ;
@@ -145,15 +147,15 @@ int main() {
                 find_condition *= (find_pattern(string , temp , start_index) == start_index);
                 break;
         }
-
+*/
+        find_condition= Find_condition(mode , i ,&start_index ,&end_index ,string ,word ,temp);
         if(find_condition){
             count ++;
             out = (!byWord_command) * start_index + byWord_command * byWord(string , start_index);
             outPut_condition = (count == at_command || all_command) * !count_command ;
             if(outPut_condition)
-                printf("%d:start:%lld middle:%lld  end:%lld , out:%lld \n" ,count,start_index,middle_index,end_index, out);
+                printf("%d:start:%lld end:%lld , out:%lld \n" ,count,start_index,end_index, out);
         }
-        printf("middle:%lld\n",middle_index);
 
         i = find_pattern(string , word , end_index);
     }
@@ -813,4 +815,81 @@ char *find_mode(char *string , int *mode){
         strrev(string);
         return temp ;
     }
+}
+
+int Find_condition(int mode , long long i , long long *start_index , long long *end_index , char *string , char *word , char *temp ){
+    long long middle_index;
+    int condition;
+
+    switch (mode){
+        case Simple:
+            *start_index = i ;
+            *end_index  = i + strlen (word) ;
+            if(*start_index == 0)
+                condition = (isBlank(string[*end_index]) );
+            else
+                condition = (isBlank(string[*start_index - 1])) * (isBlank(string[*end_index]));
+            break;
+
+        case At_end:
+            *start_index = i ;
+            *end_index  = i + strlen (word) ;
+            while(!isBlank(string[*end_index]))
+                (*end_index) ++;
+            if(*start_index == 0)
+                condition = 1 ;
+            else
+                condition = isBlank(string[(*start_index) - 1]);
+            break;
+
+        case At_start:
+            *start_index = i ;
+            while(*start_index>0 && !isBlank(string[*start_index - 1]))
+                (*start_index) -- ;
+            *end_index = i + strlen(word);
+            condition = isBlank(string[*end_index]);
+            break;
+
+        case Pattern:
+            condition = 1 ;
+            *start_index = i ;
+            *end_index  = i + strlen (word) ;
+            while(*start_index>0 && !isBlank(string[*start_index - 1]))
+                (*start_index) -- ;
+            while(!isBlank(string[*end_index]))
+                (*end_index)++;
+            break;
+
+        case At_end_in_sentence:
+            *start_index = i ;
+            middle_index = i + strlen (word);
+            while(!isBlank(string[middle_index]))
+                middle_index ++;
+            *end_index = middle_index + 1 + strlen(temp) ;
+            if(*start_index == 0) {
+                condition = isBlank(string[middle_index]);
+                condition *= (find_pattern(string , temp , middle_index) == middle_index + 1);
+                condition *= isBlank(string[*end_index]);
+            }
+            else {
+                condition = isBlank(string[middle_index]);
+                condition *= isBlank(string[*start_index - 1]) ;
+                condition *= (find_pattern(string , temp , middle_index) == middle_index + 1);
+                condition *= isBlank(string[*end_index]);
+            }
+            break;
+
+        case At_start_in_sentence:
+            middle_index = i ;
+            while(middle_index>0 && !isBlank(string[middle_index - 1]))
+                middle_index --;
+            *start_index = middle_index - strlen(temp) -1 ;
+            *end_index = i + strlen(word);
+            condition = (*start_index >= 0);
+            condition *= isBlank(string [middle_index - 1] );
+            condition *= isBlank(string[*end_index]);
+            condition *= (find_pattern(string , temp , *start_index) == *start_index);
+            break;
+    }
+    return condition ;
 }
