@@ -37,7 +37,7 @@ void tree_recursion(const int Depth , int depth);
 int isFile(const char *address);
 void tree(char *string);
 int isBlank(char c);
-char *str_handler(char *string);
+char *str_handler(char *string , char *header);
 long long pos_handler(char *string);
 void copy_file(FILE *dest, FILE *source);
 FILE *make_undo_file(char *file_address);
@@ -296,12 +296,12 @@ int isBlank(char c){
     return result;
 }
 
-char *str_handler(char *string){
+char *str_handler(char *string , char *header){
     char *str;
     long long index ,i,j=0;
     str = (char*) calloc(STRING_SIZE , sizeof(char));
-    index = find_pattern(string, "-str " , 0);
-    index += strlen("-str ");
+    index = find_pattern(string, header , 0);
+    index += strlen(header);
 
     if(string[index] == '"'){
         index++;
@@ -411,7 +411,7 @@ void insertStr(char *string){
     FILE *file;
     FILE *undo_file;
     address = address_handler(string);
-    str  = str_handler(string);
+    str  = str_handler(string ,"-str ");
     pos = pos_handler(string);
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
@@ -804,7 +804,7 @@ void find(char *string){
     FILE *file;
 
     address = address_handler(string);
-    str  = str_handler(string);
+    str  = str_handler(string ,"-str ");
     byWord_command = (find_pattern(string,"-byword",0) != -1 );
     all_command = (find_pattern(string , "-all",0) != -1);
     count_command = (find_pattern(string , "-count" , 0) != -1);
