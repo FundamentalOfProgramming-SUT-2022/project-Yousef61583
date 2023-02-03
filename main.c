@@ -61,6 +61,8 @@ int main() {
     char string[STRING_SIZE];
     gets(string);
     find(string);
+
+
     return 0;
 }
 
@@ -125,7 +127,7 @@ int terminal(){
             break;
 
         case Find:
-            printf("find\n");
+            find(entry);
             break;
 
         case Replace:
@@ -319,7 +321,12 @@ char *str_handler(char *string){
                     case 't':
                         str[j] = '\t';
                         break;
+                    case '*':
+                        str[j] = '*';
                 }
+            }
+            else if(string[i] == '*') {
+                str[j] = '^';
             }
             else
                 str[j] = string[i];
@@ -667,11 +674,11 @@ long long byWord(char *string ,long long index ){
 }
 
 char *find_mode(char *string , int *mode){
-    if(find_pattern(string , "*" ,0) == -1){
+    if(find_pattern(string , "^" ,0) == -1){
         *mode = Simple;
         return NULL;
     }
-    if(string[strlen(string)-1] == '*' && string[0]=='*'){
+    if(string[strlen(string)-1] == '^' && string[0]=='^'){
         string[strlen(string)-1] = '\0';
         strrev(string);
         string[strlen(string)-1] = '\0';
@@ -679,37 +686,37 @@ char *find_mode(char *string , int *mode){
         *mode = Pattern;
         return NULL;
     }
-    if(string[strlen(string)-1] == '*'){
+    if(string[strlen(string)-1] == '^'){
         string[strlen(string)-1] = '\0';
         *mode = At_end ;
         return NULL;
     }
-    if(string[0]=='*'){
+    if(string[0]=='^'){
         strrev(string);
         string[strlen(string)-1] = '\0';
         strrev(string);
         *mode = At_start ;
         return NULL;
     }
-    if(find_pattern(string , "* " , 0) != -1){
+    if(find_pattern(string , "^ " , 0) != -1){
         char *temp;
         temp = (char*) calloc(STRING_SIZE , sizeof(char));
-        for(long long i = 0 ; i < strlen(string) - (find_pattern(string , "* " , 0) + 2); i++)
-            temp[i] = string [ i + find_pattern(string , "* " , 0) + 2];
-        temp[strlen(string) - (find_pattern(string , "* " , 0) + 2)] = '\0';
+        for(long long i = 0 ; i < strlen(string) - (find_pattern(string , "^ " , 0) + 2); i++)
+            temp[i] = string [ i + find_pattern(string , "^ " , 0) + 2];
+        temp[strlen(string) - (find_pattern(string , "^ " , 0) + 2)] = '\0';
         *mode = At_end_in_sentence ;
-        strtok(string , "* ");
+        strtok(string , "^ ");
         return temp ;
     }
-    if(find_pattern(string ," *" , 0) != -1){
+    if(find_pattern(string ," ^" , 0) != -1){
         char *temp;
         temp = (char*) calloc(STRING_SIZE , sizeof(char));
-        for(long long i = 0 ; i < find_pattern(string , " *" , 0) ; i++)
+        for(long long i = 0 ; i < find_pattern(string , " ^" , 0) ; i++)
             temp[i] = string [ i ];
-        temp[find_pattern(string , " *" , 0)] = '\0';
+        temp[find_pattern(string , " ^" , 0)] = '\0';
         *mode = At_start_in_sentence ;
         strrev(string);
-        strtok(string , " *");
+        strtok(string , " ^");
         strrev(string);
         return temp ;
     }
