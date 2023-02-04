@@ -33,7 +33,7 @@ enum grep_modes{
 int Command_code(char *command);
 int terminal();
 long long find_pattern(char *string , char *pattern , long long index);
-char *address_handler(char *string);
+char *address_handler(char *string );
 char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
@@ -64,14 +64,15 @@ char **files_handler(char *string , int *file_count);
 int grep_file(char *address , char *pattern ,int mode);
 void grep(char *string);
 char *make_undo_path(char *file_address);
+void auto_indent(char *string);
 
 void undo(char *string);
 
 int main() {
     // start_program();
-    char *string[STRING_SIZE];
+    char string[STRING_SIZE];
     gets(string);
-    undo(string);
+    auto_indent(string);
     return 0;
 }
 
@@ -152,7 +153,7 @@ int terminal(){
             break;
 
         case Auto_indent:
-            printf("auto indent\n");
+            auto_indent(entry);
             break;
 
         case Compare:
@@ -1116,4 +1117,79 @@ void undo(char *string){
         fputc(text[i], undo_file);
     fclose(undo_file);
     free(text);
+}
+
+void auto_indent(char *string){
+    char c ,perv_c;
+    char *address;
+    long long index ,i , count =0 ;
+    FILE *file;
+    FILE *undo_file;
+    address = (char*) calloc(STRING_SIZE , sizeof(char));
+    index = find_pattern(string, "auto-indent " ,0);
+    index += strlen("auto-indent ");
+
+    if(string[index] == '"'){
+        c= '"';
+        index++;
+    }
+    else
+        c = ' ';
+
+    for(i=0; string[index+i] != c && string[index+i] != '\0'; i++)
+        address[i]=string[index+i];
+
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+
+    undo_file = make_undo_file(address);
+    file = fopen(address ,"w");
+
+    perv_c  = '\0';
+    while((c = fgetc(undo_file)) != EOF){
+        switch (c) {
+            case '{':
+                count ++;
+                if(!isBlank(perv_c) && (perv_c != '{' || perv_c != '}'))
+                    fputc(' ',file);
+                fputc(c ,file);
+                fputc('\n',file);
+                for(int j=0 ; j<count ;j++)
+                    fputc('\t',file);
+                break;
+
+            case '}':
+                count --;
+                count *= (count>=0);
+                if(perv_c != '\n')
+                    fputc('\n',file);
+                for(int j=0 ; j<count ;j++)
+                    fputc('\t',file);
+                fputc(c ,file);
+                fputc('\n',file);
+                for(int j=0 ; j<count ;j++)
+                    fputc('\t',file);
+                break;
+
+            case '\n':
+                if(perv_c != '{' && perv_c != '}')
+                    fputc(c,file);
+                for(int j=0 ; j<count ;j++)
+                    fputc('\t',file);
+                break;
+
+            default:
+                fputc(c , file);
+                break;
+
+        }
+
+        perv_c = c;
+    }
+
+    printf("check\n");
+    fclose(file);
+    fclose(undo_file);
 }
