@@ -25,6 +25,10 @@ enum find_modes{
     Pattern,At_end_in_sentence , At_start_in_sentence
 };
 
+enum grep_modes{
+    Normal , C_option , L_option ,Invalid_mode
+};
+
 //function prototypes:
 int Command_code(char *command);
 int terminal();
@@ -57,17 +61,14 @@ int Find_condition(int mode,long long i,long long *start_index ,long long *end_i
 void find(char *string);
 void replace(char *string);
 char **files_handler(char *string , int *file_count);
-void grep_file(char *address , char *pattern);
+int grep_file(char *address , char *pattern ,int mode);
+void grep(char *string);
 
 int main() {
     // start_program();
     char string[STRING_SIZE];
-    char **files;
     gets(string);
-    int file_count;
-    files = files_handler(string , &file_count);
-    for(int i = 0 ; i < file_count ; i++)
-        printf("file: %s\n",files[i]);
+    grep(string);
 
 
 
@@ -144,7 +145,7 @@ int terminal(){
             break;
 
         case Grep:
-            printf("grep\n");
+            grep(entry);
             break;
 
         case Undo:
@@ -991,12 +992,13 @@ char **files_handler(char *string, int *file_count){
     files =(char**) calloc(FILES_HANDLER_MAX , sizeof(char*));
     for(int j = 0;j<FILES_HANDLER_MAX ; j++)
         files[j]=address = (char*) calloc(STRING_SIZE , sizeof(char));
-    address = (char*) calloc(STRING_SIZE , sizeof(char));
+
     index = find_pattern(string, "-files " ,0);
     index += strlen("-files ");
 
-    printf("check fh\n");
+
     while(string[index] != '\0' && string[index] != '-') {
+        address = (char*) calloc(STRING_SIZE , sizeof(char));
         if (string[index] == '"') {
             c = '"';
             index++;
@@ -1008,21 +1010,65 @@ char **files_handler(char *string, int *file_count){
             address[index - i] = string[index];
             index++;
         }
+
         index += 1 + (c == '"') ;
         strcpy(files[*file_count] , address)  ;
         (*file_count) ++;
+        free(address);
     }
 
     return files;
 }
 
-void grep_file(char *address , char *pattern){
+int grep_file(char *address , char *pattern , int mode){
     char line[STRING_SIZE];
+    int count =0;
     FILE *file ;
     file = fopen(address, "r");
     while(fgets(line ,STRING_SIZE,file) != NULL)
         if(find_pattern(line , pattern ,0) != -1){
-            printf("%s:%s",address  ,line);
+            count ++;
+            if(mode == Normal) {
+                if(strlen(line),line[strlen(line)-1] == '\n')
+                    strlen(line),line[strlen(line)-1] = '\0';
+                printf("%s:%s\n", address, line);
+            }
+            if(mode == L_option){
+                printf("%s\n",address);
+                break;
+            }
         }
     fclose(file);
+    return count;
+}
+
+void grep(char *string){
+    char **files;
+    char *str;
+    int file_count , total_count =0 ;
+    int c_option=0 , l_option =0 , mode = Normal;
+    files = files_handler(string , &file_count);
+    str = str_handler(string ,"-str ");
+    if(find_pattern(string,"-c ",0) != -1)
+        mode += C_option ;
+    if(find_pattern(string,"-l ",0) != -1)
+        mode += L_option;
+
+    if(mode == Invalid_mode){
+        printf("Error: you can't use L and C options at the same time\n");
+        return;
+    }
+    for(int i = 0 ; i < file_count ; i++){
+        if(!file_exist(files[i])){
+            printf("Error:%s does not exist!",files[i]);
+            return;
+        }
+    }
+
+    for(int i = 0 ; i < file_count ; i++)
+        total_count += grep_file(files[i],str,mode);
+
+    if(mode == C_option)
+        printf("%d\n",total_count);
+
 }
