@@ -65,6 +65,7 @@ int grep_file(char *address , char *pattern ,int mode);
 void grep(char *string);
 char *make_undo_path(char *file_address);
 void auto_indent(char *string);
+void compare(char *string);
 
 void undo(char *string);
 
@@ -72,7 +73,7 @@ int main() {
     // start_program();
     char string[STRING_SIZE];
     gets(string);
-    auto_indent(string);
+    compare(string);
     return 0;
 }
 
@@ -983,7 +984,7 @@ char **files_handler(char *string, int *file_count){
 
     files =(char**) calloc(FILES_HANDLER_MAX , sizeof(char*));
     for(int j = 0;j<FILES_HANDLER_MAX ; j++)
-        files[j]=address = (char*) calloc(STRING_SIZE , sizeof(char));
+        files[j] = (char*) calloc(STRING_SIZE , sizeof(char));
 
     index = find_pattern(string, "-files " ,0);
     index += strlen("-files ");
@@ -1192,4 +1193,46 @@ void auto_indent(char *string){
     printf("check\n");
     fclose(file);
     fclose(undo_file);
+}
+
+void compare(char *string){
+    char c;
+    char *address_1;
+    char *address_2;
+    long long index ,i;
+
+    index = find_pattern(string, "compare " ,0);
+    index += strlen("compare ");
+    address_1 = (char*) calloc(STRING_SIZE , sizeof(char));
+    address_2 = (char*) calloc(STRING_SIZE , sizeof(char));
+
+    if (string[index] == '"') {
+            c = '"';
+            index++;
+        }
+    else
+        c = ' ';
+    i = index;
+    while (string[index] != c && string[index] != '\0') {
+            address_1[index - i] = string[index];
+            index++;
+    }
+
+    index += 1 + (c == '"') ;
+    if (string[index] == '"') {
+        c = '"';
+        index++;
+    }
+    else
+        c = ' ';
+    i=index;
+    while (string[index] != c && string[index] != '\0') {
+        address_2[index - i] = string[index];
+        index++;
+    }
+
+    printf("address_1:%s.\n",address_1);
+    printf("address_2:%s.\n",address_2);
+
+
 }
