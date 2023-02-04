@@ -56,14 +56,19 @@ char *find_mode(char *string , int *mode);
 int Find_condition(int mode,long long i,long long *start_index ,long long *end_index,char *string,char *word,char *temp);
 void find(char *string);
 void replace(char *string);
-char **files_handler(char *string);
+char **files_handler(char *string , int *file_count);
 void grep_file(char *address , char *pattern);
 
 int main() {
     // start_program();
     char string[STRING_SIZE];
+    char **files;
     gets(string);
-    grep_file(string , "baba");
+    int file_count;
+    files = files_handler(string , &file_count);
+    for(int i = 0 ; i < file_count ; i++)
+        printf("file: %s\n",files[i]);
+
 
 
 
@@ -976,13 +981,16 @@ void replace(char *string){
 
 }
 
-char **files_handler(char *string){
+char **files_handler(char *string, int *file_count){
     char c;
     char *address;
     char **files;
     long long index ,i;
-    int file_count=0;
+    *file_count=0;
 
+    files =(char**) calloc(FILES_HANDLER_MAX , sizeof(char*));
+    for(int j = 0;j<FILES_HANDLER_MAX ; j++)
+        files[j]=address = (char*) calloc(STRING_SIZE , sizeof(char));
     address = (char*) calloc(STRING_SIZE , sizeof(char));
     index = find_pattern(string, "-files " ,0);
     index += strlen("-files ");
@@ -1001,27 +1009,20 @@ char **files_handler(char *string){
             index++;
         }
         index += 1 + (c == '"') ;
-        files[file_count] =address  ;
-        printf("adrs :%s\n",address);
-        file_count ++;
+        strcpy(files[*file_count] , address)  ;
+        (*file_count) ++;
     }
 
-
-
-
+    return files;
 }
 
 void grep_file(char *address , char *pattern){
     char line[STRING_SIZE];
     FILE *file ;
     file = fopen(address, "r");
-
     while(fgets(line ,STRING_SIZE,file) != NULL)
         if(find_pattern(line , pattern ,0) != -1){
             printf("%s:%s",address  ,line);
         }
-
-
     fclose(file);
-
 }
