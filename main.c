@@ -1022,8 +1022,8 @@ int grep_file(char *address , char *pattern , int mode){
         if(find_pattern(line , pattern ,0) != -1){
             count ++;
             if(mode == Normal) {
-                if(strlen(line),line[strlen(line)-1] == '\n')
-                    strlen(line),line[strlen(line)-1] = '\0';
+                if(line[strlen(line)-1] == '\n')
+                    line[strlen(line)-1] = '\0';
                 printf("%s:%s\n", address, line);
             }
             if(mode == L_option){
@@ -1199,7 +1199,11 @@ void compare(char *string){
     char c;
     char *address_1;
     char *address_2;
+    char line_1[STRING_SIZE] ,line_2[STRING_SIZE];
+    FILE *file_1 ,*file_2;
     long long index ,i;
+    int line_count_1 =0 , line_count_2 = 0;
+    int line_number =0;
 
     index = find_pattern(string, "compare " ,0);
     index += strlen("compare ");
@@ -1231,8 +1235,61 @@ void compare(char *string){
         index++;
     }
 
-    printf("address_1:%s.\n",address_1);
-    printf("address_2:%s.\n",address_2);
+    if(!file_exist(address_1)){
+        printf("Error: first file does not exist!\n");
+        return;
+    }
+    if(!file_exist(address_2)){
+        printf("Error: second file does not exist!\n");
+        return;
+    }
 
+    file_1 = fopen(address_1 , "r");
+    file_2 = fopen(address_2 , "r");
+
+    while(fgets(line_1,STRING_SIZE,file_1) != NULL)
+        line_count_1 ++;
+    rewind(file_1);
+
+    while(fgets(line_2,STRING_SIZE,file_2) != NULL)
+        line_count_2 ++;
+    rewind(file_2);
+
+
+
+
+    while((fgets(line_1,STRING_SIZE,file_1) != NULL) && (fgets(line_2,STRING_SIZE,file_2) != NULL)){
+
+        if(line_1[strlen(line_1)-1] == '\n')
+            line_1[strlen(line_1)-1] = '\0';
+
+        if(line_2[strlen(line_2)-1] == '\n')
+            line_2[strlen(line_2)-1] = '\0';
+
+        line_number ++ ;
+        if(strcmp(line_1,line_2)){
+            printf("=========== #%d ===========\n",line_number);
+            printf("%s\n",line_1);
+            printf("%s\n",line_2);
+        }
+    }
+
+    if(line_count_1 > line_count_2){
+        printf("<<<<<<<<< #%d #%d >>>>>>>>>\n",line_count_2+1 , line_count_1);
+        while(fgets(line_1,STRING_SIZE,file_1) != NULL){
+            if(line_1[strlen(line_1)-1] == '\n')
+                line_1[strlen(line_1)-1] = '\0';
+            printf("%s\n",line_1);
+        }
+    }
+
+    if(line_count_2 > line_count_1){
+        printf("<<<<<<<<<< #%d #%d >>>>>>>>>>\n",line_count_1+1 , line_count_2);
+        while(fgets(line_2,STRING_SIZE,file_2) != NULL){
+            if(line_2[strlen(line_2)-1] == '\n')
+                line_2[strlen(line_2)-1] = '\0';
+            printf("%s\n",line_2);
+        }
+    }
 
 }
