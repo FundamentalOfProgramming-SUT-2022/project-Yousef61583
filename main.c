@@ -54,13 +54,14 @@ long long byWord(char *string ,long long index );
 char *find_mode(char *string , int *mode);
 int Find_condition(int mode,long long i,long long *start_index ,long long *end_index,char *string,char *word,char *temp);
 void find(char *string);
+void replace(char *string);
 
 
 int main() {
     // start_program();
     char string[STRING_SIZE];
     gets(string);
-    find(string);
+    replace(string);
 
 
     return 0;
@@ -131,7 +132,7 @@ int terminal(){
             break;
 
         case Replace:
-            printf("replace\n");
+            replace(entry);
             break;
 
         case Grep:
@@ -823,8 +824,6 @@ void find(char *string){
         free(at_str);
     }
 
-
-
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -848,7 +847,6 @@ void find(char *string){
         i++;
     }
     fclose(file);
-
 
     temp = find_mode(str , &mode);
     i = find_pattern(text , str , end_index);
@@ -876,6 +874,101 @@ void find(char *string){
         printf("\n");
     else
         printf("str not found\n");
+
+    free(text);
+
+}
+
+void replace(char *string){
+    int at = 1 ,at_command = 0 ,all_command ;
+    int replace_stat=0,mode =0 ;
+    long long i , start_index ,end_index=0 ,perv_end=-1, text_index =0 ;
+    char *text ,*str_1 ,*str_2 ,*temp ,*address;
+    int replace_condition ,find_condition ,count =0;
+    char c;
+    FILE *file;
+    FILE *undo_file;
+
+    address = address_handler(string);
+    str_1 = str_handler(string , "-str1 ");
+    str_2 = str_handler(string , "-str2 ");
+    all_command = (find_pattern(string , "-all",0) != -1);
+    if(find_pattern(string , "-at " ,0 ) != -1){
+        at_command = 1;
+        long long x ;
+        long long j;
+        char *at_str;
+        at_str = (char*) calloc(100 , sizeof(char));
+        x = find_pattern(string , "-at " , 0);
+        x += strlen("-at ");
+        for( j=0; string[x + j] != ' ' && string[x + j] != '\0'; j++)
+            at_str[j] = string[x + j];
+        at_str[j] = '\0';
+        sscanf(at_str,"%d",&at);
+        free(at_str);
+    }
+
+
+
+    if(!file_exist(address)){
+        printf("Error: file does not exist!\n");
+        return;
+    }
+    if( all_command && at_command){
+        printf("Error: -at and -all cannot used at the same time\n");
+        return;
+    }
+
+
+    text = (char*) calloc(TEXT_SIZE , sizeof(char));
+    file = fopen(address , "r");
+    c= fgetc(file);
+    i=0;
+    while(c != EOF){
+        text[i] = c ;
+        c = fgetc(file);
+        i++;
+    }
+    fclose(file);
+    undo_file = make_undo_file(address);
+    file = fopen(address , "w");
+
+
+    temp = find_mode(str_1 , &mode);
+    i = find_pattern(text , str_1 , end_index);
+    while(i != -1){
+        find_condition= Find_condition(mode , i , &start_index , &end_index , text , str_1 , temp);
+        if(find_condition){
+            count ++;
+            replace_condition = (count == at || all_command) * (start_index >= perv_end)  ;
+            if(replace_condition){
+                while(text_index < start_index){
+                    fputc(text[text_index ], file);
+                    text_index++;
+                }
+                for(long long j  =0 ; j < strlen(str_2) ; j++)
+                    fputc(str_2[j],file);
+                text_index = end_index ;
+
+            }
+            replace_stat += replace_condition;
+            perv_end = end_index ;
+        }
+
+        i = find_pattern(text , str_1 , start_index + 1);
+    }
+    while(text_index < strlen(text)){
+        fputc(text[text_index ], file);
+        text_index++;
+    }
+    fclose(file);
+    fclose(undo_file);
+    free(text);
+
+    if(replace_stat)
+        printf("replaced!\n");
+    else
+        printf("str_1 not found\n");
 
 
 }
