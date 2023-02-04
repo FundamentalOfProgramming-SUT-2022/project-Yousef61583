@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <dirent.h>
+#include<stdio.h>
+#include<string.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<stdlib.h>
+#include<dirent.h>
+
 #define STRING_SIZE 500
 #define TEXT_SIZE 100000
 #define FILES_HANDLER_MAX 20
@@ -229,6 +230,7 @@ int file_exist(char *address){
         fclose(file);
         return 1;
     }
+    fclose(file);
     return 0;
 }
 
@@ -385,6 +387,8 @@ long long pos_handler(char *string){
         c = fgetc(file) ;
         if (lineNo == line_cnt && charNo == char_cnt){
             fclose(file);
+            free(pos_str);
+            free(address);
             return pos ;
         }
         pos ++;
@@ -396,6 +400,9 @@ long long pos_handler(char *string){
     }
 
     fclose(file);
+    free(pos_str);
+    free(address);
+
     return -1;
 }
 
@@ -456,20 +463,21 @@ void insertStr(char *string){
 
     fclose(file);
     fclose(undo_file);
+    free(address);
+    free(str);
 }
 
 void print_file(char *address){
     FILE *fp ;
     char c;
-    printf("check\n");
     fp = fopen(address,"r");
+
     c = fgetc(fp);
-    printf("check\n");
     while(c!=EOF){
         printf("%c",c);
         c = fgetc(fp);
     }
-    printf("check\n");
+
     fclose(fp);
 }
 
@@ -481,6 +489,7 @@ void cat(char *string){
         return;
     }
     print_file(address);
+    free(address);
 }
 
 long long size_handler(char *string){
@@ -494,6 +503,8 @@ long long size_handler(char *string){
         size_str[i] = string[i + index];
 
     sscanf(size_str , "%lld" , &size);
+
+    free(size_str);
 
     return size ;
 }
@@ -541,6 +552,8 @@ void removeStr(char *string){
 
     fclose(file);
     fclose(undo_file);
+    free(address);
+
 }
 
 void start_program() {
@@ -604,6 +617,8 @@ void copyStr(char *string){
     }
     fclose(file);
     fclose(clipBord);
+    free(address);
+
 }
 
 void cutStr(char *string){
@@ -664,6 +679,8 @@ void cutStr(char *string){
 
     fclose(file);
     fclose( undo_file);
+    free(address);
+
 }
 
 void pasteStr(char *string){
@@ -706,6 +723,7 @@ void pasteStr(char *string){
 
     fclose(file);
     fclose(undo_file);
+    free(address);
 }
 
 long long byWord(char *string ,long long index ){
@@ -932,6 +950,9 @@ void find(char *string){
         printf("str not found\n");
 
     free(text);
+    free(str);
+    free(temp);
+    free(address);
 
 }
 
@@ -1028,6 +1049,12 @@ void replace(char *string){
     else
         printf("str_1 not found\n");
 
+    free(text);
+    free(str_1);
+    free(str_2);
+    free(temp);
+    free(address);
+
 }
 
 char **files_handler(char *string, int *file_count){
@@ -1122,6 +1149,9 @@ void grep(char *string){
     if(mode == C_option)
         printf("%d\n",total_count);
 
+    free(files);
+    free(str);
+
 }
 
 char *make_undo_path(char *file_address){
@@ -1174,8 +1204,12 @@ void undo(char *string){
     undo_file = fopen(undo_file_path ,"w");
     for(i =0 ; i < strlen(text) ; i++)
         fputc(text[i], undo_file);
+
     fclose(undo_file);
     free(text);
+    free(address);
+    free(undo_file_path);
+
 }
 
 void auto_indent(char *string){
@@ -1248,9 +1282,10 @@ void auto_indent(char *string){
         perv_c = c;
     }
 
-    printf("check\n");
     fclose(file);
     fclose(undo_file);
+    free(address);
+
 }
 
 void compare(char *string){
@@ -1350,5 +1385,8 @@ void compare(char *string){
 
     fclose(file_1);
     fclose(file_2);
+    free(address_1);
+    free(address_2);
+
 }
 
