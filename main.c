@@ -63,16 +63,15 @@ void replace(char *string);
 char **files_handler(char *string , int *file_count);
 int grep_file(char *address , char *pattern ,int mode);
 void grep(char *string);
+char *make_undo_path(char *file_address);
+
+void undo(char *string);
 
 int main() {
     // start_program();
-    char string[STRING_SIZE];
+    char *string[STRING_SIZE];
     gets(string);
-    grep(string);
-
-
-
-
+    undo(string);
     return 0;
 }
 
@@ -149,7 +148,7 @@ int terminal(){
             break;
 
         case Undo:
-            printf("undo\n");
+            undo(entry);
             break;
 
         case Auto_indent:
@@ -392,18 +391,10 @@ void copy_file(FILE *dest, FILE *source){
 }
 
 FILE *make_undo_file(char *file_address){
-    char *name;
     char *undo_file_path;
-    char address[STRING_SIZE];
     FILE *undo_file;
     FILE *file;
-    strcpy(address , file_address);
-    name = strrev(address);
-    strtok(name , "\\");
-    name =strrev(name) ;
-    undo_file_path = get_file_path(file_address);
-    strcat( undo_file_path , ".undo_");
-    strcat( undo_file_path , name);
+    undo_file_path = make_undo_path( file_address);
     undo_file = fopen(undo_file_path , "w");
     file = fopen (file_address , "r");
     copy_file(undo_file , file);
@@ -1071,4 +1062,58 @@ void grep(char *string){
     if(mode == C_option)
         printf("%d\n",total_count);
 
+}
+
+char *make_undo_path(char *file_address){
+    char address[STRING_SIZE];
+    char *name;
+    char *undo_file_path;
+    strcpy(address , file_address);
+    name = strrev(address);
+    strtok(name , "\\");
+    name =strrev(name) ;
+    undo_file_path = get_file_path(file_address);
+    strcat( undo_file_path , ".undo_");
+    strcat( undo_file_path , name);
+    return undo_file_path;
+}
+
+void undo(char *string){
+    char *undo_file_path;
+    char *address;
+    char *text;
+    char c;
+    long long i =0;
+    FILE *file;
+    FILE *undo_file;
+    address = address_handler(string);
+    undo_file_path = make_undo_path(address);
+
+    if(!file_exist(address)){
+        printf("Error: file does not exist\n");
+        return;
+    }
+    if(!file_exist(undo_file_path))
+        return;
+
+    text = (char*) calloc(TEXT_SIZE , sizeof(char));
+    file = fopen(address , "r");
+
+    while((c= fgetc(file)) != EOF){
+        text[i] = c ;
+        i++;
+    }
+    fclose(file);
+
+    file = fopen(address ,"w");
+    undo_file = fopen(undo_file_path,"r");
+    copy_file(file , undo_file);
+    fclose(file);
+    fclose(undo_file);
+
+    undo_file = fopen(undo_file_path ,"w");
+    for(i =0 ; i < strlen(text) ; i++)
+        fputc(text[i], undo_file);
+    fclose(undo_file);
+    free(text);
 }
