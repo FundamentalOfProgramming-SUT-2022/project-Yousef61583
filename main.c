@@ -6,6 +6,7 @@
 #include <dirent.h>
 #define STRING_SIZE 500
 #define TEXT_SIZE 100000
+#define FILES_HANDLER_MAX 20
 
 char parent_directory[STRING_SIZE];
 char clipBord_directory[STRING_SIZE];
@@ -55,13 +56,21 @@ char *find_mode(char *string , int *mode);
 int Find_condition(int mode,long long i,long long *start_index ,long long *end_index,char *string,char *word,char *temp);
 void find(char *string);
 void replace(char *string);
-
+char **files_handler(char *string);
 
 int main() {
     // start_program();
     char string[STRING_SIZE];
     gets(string);
-    replace(string);
+    char **files;
+    printf("check\n");
+    files = files_handler(string);
+    printf("check -files\n");
+    int index=0;
+    while(files[index] != NULL){
+        printf("%s \n",files[index]);
+        index++;
+    }
 
 
     return 0;
@@ -969,6 +978,45 @@ void replace(char *string){
         printf("replaced!\n");
     else
         printf("str_1 not found\n");
+
+
+}
+
+char **files_handler(char *string){
+    char c;
+    char *address;
+    char **files;
+    long long index ,i;
+    int file_count=0;
+
+
+    files = (char**) calloc(STRING_SIZE , sizeof(char*));
+    index = find_pattern(string, "-files " ,0);
+    index += strlen("-files ");
+
+    printf("check fh\n");
+    while(string[index] != '\0' && string[index] != '-') {
+        address = (char*) calloc(STRING_SIZE , sizeof(char));
+        if (string[index] == '"') {
+            c = '"';
+            index++;
+        } else
+            c = ' ';
+
+        i = index;
+        while (string[index] != c && string[index] != '\0') {
+            address[index - i] = string[index];
+            index++;
+        }
+        index += 1 + (c == '"') ;
+
+        files[file_count] =address  ;
+        printf("adrs :%s\n",address);
+        file_count ++;
+        free(address);
+    }
+
+    return files;
 
 
 }
