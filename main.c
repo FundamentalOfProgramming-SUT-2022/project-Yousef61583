@@ -66,7 +66,6 @@ void grep(char *string);
 char *make_undo_path(char *file_address);
 void auto_indent(char *string);
 void compare(char *string);
-
 void undo(char *string);
 
 int main() {
@@ -101,9 +100,11 @@ int Command_code(char *command){
 int terminal(){
     char entry[STRING_SIZE];
     char command[STRING_SIZE];
+
     gets(entry);
     strcpy(command,entry);
     strtok(command , " ");
+
     switch (Command_code(command)) {
         case Invalid:
             printf("invalid command\n");
@@ -158,7 +159,7 @@ int terminal(){
             break;
 
         case Compare:
-            printf("compare\n");
+            compare(entry);
             break;
 
         case Directory_tree:
@@ -166,7 +167,6 @@ int terminal(){
             break;
 
         case Exit:
-            printf("program finished\n");
             return 0;
 
     }
@@ -177,13 +177,16 @@ long long find_pattern(char *string , char *pattern ,  long long index){
     char temp[strlen(pattern)];
     long long i ,j , size ;
     size = strlen(string) - strlen(pattern);
+
     for(i= index ; i<=size ;i++){
         for(j=0;j< strlen(pattern); j++)
             temp[j]=string[i+j];
         temp[strlen(pattern)]= '\0';
+
         if(!strcmp(pattern, temp))
             return i;
     }
+
     return -1;
 }
 
@@ -234,6 +237,7 @@ void create_path(char *address){
     int cd_stat;
     path = get_file_path(address);
     token = strtok(path,"\\");
+
     while(token != NULL){
         cd_stat = chdir(token);
         if(cd_stat == -1){
@@ -250,6 +254,7 @@ void create_path(char *address){
 void create_file(char *string){
     char *address;
     address = address_handler(string);
+
     if(file_exist(address)){
         printf("Error:the file already exist!\n");
     }
@@ -259,6 +264,9 @@ void create_file(char *string){
         file = fopen(address, "w");
         fclose(file);
     }
+
+    free(address);
+
 }
 
 int isFile(const char *address){
@@ -270,6 +278,7 @@ int isFile(const char *address){
 void tree_recursion(const int Depth , int depth){
     struct dirent *de;
     DIR *dr = opendir(".");
+
     if (dr == NULL || depth ==0){
         return;
     }
@@ -336,18 +345,20 @@ char *str_handler(char *string , char *header){
                         str[j] = '*';
                 }
             }
+
             else if(string[i] == '*') {
                 str[j] = '^';
             }
+
             else
                 str[j] = string[i];
             j++;
         }
     }
+
     else
         for(i=0; string[index+i] != ' ' && string[index+i] != '\0'; i++)
             str[i]=string[index + i];
-
 
     return str;
 }
@@ -369,6 +380,7 @@ long long pos_handler(char *string){
     sscanf(pos_str,"%lld:%lld",&lineNo,&charNo);
     address = address_handler(string);
     FILE *file = fopen(address,"r");
+
     while(c != EOF){
         c = fgetc(file) ;
         if (lineNo == line_cnt && charNo == char_cnt){
@@ -382,6 +394,7 @@ long long pos_handler(char *string){
             line_cnt ++ ;
         }
     }
+
     fclose(file);
     return -1;
 }
@@ -416,6 +429,7 @@ void insertStr(char *string){
     address = address_handler(string);
     str  = str_handler(string ,"-str ");
     pos = pos_handler(string);
+
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -439,6 +453,7 @@ void insertStr(char *string){
         fputc(c ,file);
         c = fgetc(undo_file);
     }
+
     fclose(file);
     fclose(undo_file);
 }
@@ -466,7 +481,6 @@ void cat(char *string){
         return;
     }
     print_file(address);
-
 }
 
 long long size_handler(char *string){
@@ -475,9 +489,12 @@ long long size_handler(char *string){
     size_str = (char*) calloc(STRING_SIZE, sizeof(char));
     index = find_pattern(string, "-size " , 0);
     index += strlen("-size ");
+
     for( i = 0 ; string[i+index] != ' ' && string[index + i] != '\0' ; i++)
         size_str[i] = string[i + index];
+
     sscanf(size_str , "%lld" , &size);
+
     return size ;
 }
 
@@ -487,13 +504,14 @@ void removeStr(char *string){
     char fb_header ,c;
     FILE *file, *undo_file;
     address = address_handler(string);
+    pos = pos_handler(string);
+    size = size_handler(string);
+    fb_header = string [ strlen(string) - 1];
+
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
     }
-    pos = pos_handler(string);
-    size = size_handler(string);
-    fb_header = string [ strlen(string) - 1];
     if(pos == -1){
         printf("Error: invalid position\n");
         return;
@@ -506,11 +524,13 @@ void removeStr(char *string){
         printf("Error:wrong -f -b header\n");
         return;
     }
+
     start = pos - size * (fb_header == 'b');
     start *= (start > 0);
     end = pos + size * (fb_header == 'f') ;
     undo_file = make_undo_file(address);
     file = fopen(address , "w");
+
     c = fgetc(undo_file);
     while(c != EOF){
         if( i < start || i >= end )
@@ -518,22 +538,27 @@ void removeStr(char *string){
         c = fgetc(undo_file);
         i++;
     }
+
     fclose(file);
     fclose(undo_file);
 }
 
 void start_program() {
     getcwd(parent_directory, STRING_SIZE);
+
     strcpy(clipBord_directory, parent_directory);
     strcat(clipBord_directory, "\\clipBord.txt");
+
     if (!file_exist(clipBord_directory)) {
         FILE *ClipBord;
         ClipBord = fopen(clipBord_directory, "w");
         fclose(ClipBord);
     }
+
     if (chdir("root") == -1) {
         mkdir("root");
     }
+
     chdir(parent_directory);
 }
 
@@ -543,13 +568,14 @@ void copyStr(char *string){
     char fb_header  , c;
     FILE *file , *clipBord;
     address = address_handler(string);
+    pos = pos_handler(string);
+    size = size_handler(string);
+    fb_header = string [ strlen(string) - 1];
+
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
     }
-    pos = pos_handler(string);
-    size = size_handler(string);
-    fb_header = string [ strlen(string) - 1];
     if(pos == -1){
         printf("Error: invalid position\n");
         return;
@@ -562,11 +588,13 @@ void copyStr(char *string){
         printf("Error:wrong -f -b header\n");
         return;
     }
+
     start = pos - size * (fb_header == 'b');
     start *= (start > 0);
     end = pos + size * (fb_header == 'f') ;
     file = fopen(address , "r");
     clipBord  = fopen( clipBord_directory , "w");
+
     c = fgetc(file);
     while(c != EOF){
         if( i >= start && i < end )
@@ -584,13 +612,14 @@ void cutStr(char *string){
     char fb_header , c ;
     FILE *file, *undo_file , *clipBord;
     address = address_handler(string);
+    pos = pos_handler(string);
+    size = size_handler(string);
+    fb_header = string [ strlen(string) - 1];
+
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
     }
-    pos = pos_handler(string);
-    size = size_handler(string);
-    fb_header = string [ strlen(string) - 1];
     if(pos == -1){
         printf("Error: invalid position\n");
         return;
@@ -603,12 +632,15 @@ void cutStr(char *string){
         printf("Error:wrong -f -b header\n");
         return;
     }
+
     start = pos - size * (fb_header == 'b');
     start *= (start > 0);
     end = pos + size * (fb_header == 'f') ;
     undo_file = make_undo_file(address);
+
     file = fopen(address , "r");
     clipBord = fopen(clipBord_directory , "w");
+
     c = fgetc(file);
     while(c != EOF){
         if( i >= start && i < end )
@@ -616,9 +648,11 @@ void cutStr(char *string){
         c = fgetc(file);
         i++;
     }
+
     fclose(file);
     fclose(clipBord);
     file = fopen(address , "w");
+
     i=0;
     c = fgetc(undo_file);
     while(c != EOF){
@@ -627,6 +661,7 @@ void cutStr(char *string){
         c = fgetc(undo_file);
         i++;
     }
+
     fclose(file);
     fclose( undo_file);
 }
@@ -640,6 +675,7 @@ void pasteStr(char *string){
     FILE *clipBord;
     address = address_handler(string);
     pos = pos_handler(string);
+
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -648,9 +684,11 @@ void pasteStr(char *string){
         printf("Error: invalid position\n");
         return;
     }
+
     undo_file = make_undo_file(address);
     clipBord = fopen(clipBord_directory , "r");
     file = fopen(address,"w");
+
     for(long long i = 0 ; i < pos ; i++){
         c = fgetc(undo_file);
         fputc(c , file);
@@ -665,6 +703,7 @@ void pasteStr(char *string){
         fputc(c ,file);
         c = fgetc(undo_file);
     }
+
     fclose(file);
     fclose(undo_file);
 }
@@ -681,6 +720,7 @@ char *find_mode(char *string , int *mode){
         *mode = Simple;
         return NULL;
     }
+
     if(string[strlen(string)-1] == '^' && string[0]=='^'){
         string[strlen(string)-1] = '\0';
         strrev(string);
@@ -689,11 +729,13 @@ char *find_mode(char *string , int *mode){
         *mode = Pattern;
         return NULL;
     }
+
     if(string[strlen(string)-1] == '^'){
         string[strlen(string)-1] = '\0';
         *mode = At_end ;
         return NULL;
     }
+
     if(string[0]=='^'){
         strrev(string);
         string[strlen(string)-1] = '\0';
@@ -701,6 +743,7 @@ char *find_mode(char *string , int *mode){
         *mode = At_start ;
         return NULL;
     }
+
     if(find_pattern(string , "^ " , 0) != -1){
         char *temp;
         temp = (char*) calloc(STRING_SIZE , sizeof(char));
@@ -711,6 +754,7 @@ char *find_mode(char *string , int *mode){
         strtok(string , "^ ");
         return temp ;
     }
+
     if(find_pattern(string ," ^" , 0) != -1){
         char *temp;
         temp = (char*) calloc(STRING_SIZE , sizeof(char));
@@ -733,6 +777,7 @@ int Find_condition(int mode , long long i , long long *start_index , long long *
         case Simple:
             *start_index = i ;
             *end_index  = i + strlen (word) ;
+
             condition = (isBlank(string[*end_index]) );
             if(*start_index > 0)
                 condition *= (isBlank(string[*start_index - 1])) ;
@@ -744,9 +789,11 @@ int Find_condition(int mode , long long i , long long *start_index , long long *
             *end_index  = i + strlen (word) ;
             while(!isBlank(string[*end_index]))
                 (*end_index) ++;
+
             condition = 1 ;
             if(*start_index > 0)
                 condition *= isBlank(string[(*start_index) - 1]);
+
             break;
 
         case At_start:
@@ -754,17 +801,20 @@ int Find_condition(int mode , long long i , long long *start_index , long long *
             while(*start_index>0 && !isBlank(string[*start_index - 1]))
                 (*start_index) -- ;
             *end_index = i + strlen(word);
+
             condition = isBlank(string[*end_index]);
             break;
 
         case Pattern:
             condition = 1 ;
+
             *start_index = i ;
             *end_index  = i + strlen (word) ;
             while(*start_index>0 && !isBlank(string[*start_index - 1]))
                 (*start_index) -- ;
             while(!isBlank(string[*end_index]))
                 (*end_index)++;
+
             break;
 
         case At_end_in_sentence:
@@ -811,6 +861,7 @@ void find(char *string){
     byWord_command = (find_pattern(string,"-byword",0) != -1 );
     all_command = (find_pattern(string , "-all",0) != -1);
     count_command = (find_pattern(string , "-count" , 0) != -1);
+
     if(find_pattern(string , "-at " ,0 ) != -1){
         at_command = 1;
         long long x ;
@@ -841,19 +892,22 @@ void find(char *string){
 
     text = (char*) calloc(TEXT_SIZE , sizeof(char));
     file = fopen(address , "r");
-    c= fgetc(file);
     i=0;
+
+    c= fgetc(file);
     while(c != EOF){
         text[i] = c ;
         c = fgetc(file);
         i++;
     }
+
     fclose(file);
 
     temp = find_mode(str , &mode);
     i = find_pattern(text , str , end_index);
     while(i != -1){
         find_condition= Find_condition(mode , i , &start_index , &end_index , text , str , temp);
+
         if(find_condition){
             count ++;
             out = (!byWord_command) * start_index + byWord_command * byWord(text , start_index);
@@ -910,8 +964,6 @@ void replace(char *string){
         free(at_str);
     }
 
-
-
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -921,25 +973,27 @@ void replace(char *string){
         return;
     }
 
-
     text = (char*) calloc(TEXT_SIZE , sizeof(char));
     file = fopen(address , "r");
-    c= fgetc(file);
     i=0;
+
+    c= fgetc(file);
     while(c != EOF){
         text[i] = c ;
         c = fgetc(file);
         i++;
     }
+
     fclose(file);
+
     undo_file = make_undo_file(address);
     file = fopen(address , "w");
-
-
     temp = find_mode(str_1 , &mode);
+
     i = find_pattern(text , str_1 , end_index);
     while(i != -1){
         find_condition= Find_condition(mode , i , &start_index , &end_index , text , str_1 , temp);
+
         if(find_condition){
             count ++;
             replace_condition = (count == at || all_command) * (start_index >= perv_end)  ;
@@ -959,10 +1013,12 @@ void replace(char *string){
 
         i = find_pattern(text , str_1 , start_index + 1);
     }
+
     while(text_index < strlen(text)){
         fputc(text[text_index ], file);
         text_index++;
     }
+
     fclose(file);
     fclose(undo_file);
     free(text);
@@ -971,7 +1027,6 @@ void replace(char *string){
         printf("replaced!\n");
     else
         printf("str_1 not found\n");
-
 
 }
 
@@ -988,7 +1043,6 @@ char **files_handler(char *string, int *file_count){
 
     index = find_pattern(string, "-files " ,0);
     index += strlen("-files ");
-
 
     while(string[index] != '\0' && string[index] != '-') {
         address = (char*) calloc(STRING_SIZE , sizeof(char));
@@ -1018,6 +1072,7 @@ int grep_file(char *address , char *pattern , int mode){
     int count =0;
     FILE *file ;
     file = fopen(address, "r");
+
     while(fgets(line ,STRING_SIZE,file) != NULL)
         if(find_pattern(line , pattern ,0) != -1){
             count ++;
@@ -1031,7 +1086,9 @@ int grep_file(char *address , char *pattern , int mode){
                 break;
             }
         }
+
     fclose(file);
+
     return count;
 }
 
@@ -1042,6 +1099,7 @@ void grep(char *string){
     int c_option=0 , l_option =0 , mode = Normal;
     files = files_handler(string , &file_count);
     str = str_handler(string ,"-str ");
+
     if(find_pattern(string,"-c ",0) != -1)
         mode += C_option ;
     if(find_pattern(string,"-l ",0) != -1)
@@ -1256,8 +1314,6 @@ void compare(char *string){
     rewind(file_2);
 
 
-
-
     while((fgets(line_1,STRING_SIZE,file_1) != NULL) && (fgets(line_2,STRING_SIZE,file_2) != NULL)){
 
         if(line_1[strlen(line_1)-1] == '\n')
@@ -1294,5 +1350,5 @@ void compare(char *string){
 
     fclose(file_1);
     fclose(file_2);
-
 }
+
