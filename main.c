@@ -1292,4 +1292,7 @@ void compare(char *string){
         }
     }
 
+    fclose(file_1);
+    fclose(file_2);
+
 }
