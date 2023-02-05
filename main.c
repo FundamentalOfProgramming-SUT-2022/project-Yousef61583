@@ -12,6 +12,7 @@
 char parent_directory[STRING_SIZE];
 char clipBord_directory[STRING_SIZE];
 char output_directory[STRING_SIZE];
+char output_txt[STRING_SIZE];
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -75,14 +76,8 @@ int invalid_name(char *address);
 
 int main() {
     start_program();
-    char string[STRING_SIZE];
-    gets(string);
-    char *address;
-    address = address_handler(string);
-    printf("%s %d",file_name(address) , file_exist(address));
-
-
-
+    while(terminal());
+    printf("\nprogram finished\n");
     return 0;
 }
 
@@ -1467,6 +1462,7 @@ void compare(char *string){
     }
 
     if(line_count_1 > line_count_2){
+        printf("<<< content from first file >>>\n");
         printf("<<<<<<<<< #%d #%d >>>>>>>>>\n",line_count_2+1 , line_count_1);
         while(fgets(line_1,STRING_SIZE,file_1) != NULL){
             if(line_1[strlen(line_1)-1] == '\n')
@@ -1476,6 +1472,7 @@ void compare(char *string){
     }
 
     if(line_count_2 > line_count_1){
+        printf("<<< content from second file >>>\n");
         printf("<<<<<<<<<< #%d #%d >>>>>>>>>>\n",line_count_1+1 , line_count_2);
         while(fgets(line_2,STRING_SIZE,file_2) != NULL){
             if(line_2[strlen(line_2)-1] == '\n')
