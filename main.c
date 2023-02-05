@@ -11,6 +11,7 @@
 
 char parent_directory[STRING_SIZE];
 char clipBord_directory[STRING_SIZE];
+char output_directory[STRING_SIZE];
 
 enum commands {
     Invalid, Create_File, Insert,
@@ -68,12 +69,15 @@ char *make_undo_path(char *file_address);
 void auto_indent(char *string);
 void compare(char *string);
 void undo(char *string);
+void write_to_output(const char *txt);
 
 int main() {
-    // start_program();
+    start_program();
     char string[STRING_SIZE];
     gets(string);
-    compare(string);
+    write_to_output(string);
+
+
     return 0;
 }
 
@@ -561,12 +565,18 @@ void start_program() {
 
     strcpy(clipBord_directory, parent_directory);
     strcat(clipBord_directory, "\\clipBord.txt");
+    strcpy(output_directory, parent_directory);
+    strcat(output_directory, "\\output.txt");
 
     if (!file_exist(clipBord_directory)) {
         FILE *ClipBord;
         ClipBord = fopen(clipBord_directory, "w");
         fclose(ClipBord);
     }
+
+    FILE *outPut;
+    outPut = fopen(output_directory, "w");
+    fclose(outPut);
 
     if (chdir("root") == -1) {
         mkdir("root");
@@ -1388,5 +1398,20 @@ void compare(char *string){
     free(address_1);
     free(address_2);
 
+}
+
+void write_to_output(const char *txt){
+    char cwd[STRING_SIZE];
+    getcwd(cwd, STRING_SIZE);
+
+    chdir(parent_directory);
+    FILE *OUTPUT;
+
+    OUTPUT = fopen(output_directory, "a");
+    fprintf(OUTPUT, "%s", txt);
+
+    fclose(OUTPUT);
+
+    chdir(cwd);
 }
 
