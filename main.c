@@ -40,7 +40,7 @@ char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
 void create_file(char *string);
-void tree_recursion(const int Depth , int depth);
+void tree_recursion(int Depth , int depth);
 int isFile(const char *address);
 void tree(char *string);
 int isBlank(char c);
@@ -75,7 +75,7 @@ int main() {
     start_program();
     char string[STRING_SIZE];
     gets(string);
-    write_to_output(string);
+    tree(string);
 
 
     return 0;
@@ -281,23 +281,30 @@ int isFile(const char *address){
     return S_ISREG(ps.st_mode);
 }
 
-void tree_recursion(const int Depth , int depth){
+void tree_recursion( int depth , int step){
+    if (depth == 0)
+        return;
+
     struct dirent *de;
     DIR *dr = opendir(".");
 
-    if (dr == NULL || depth ==0){
+    if (dr == NULL)
         return;
-    }
 
-    while ((de = readdir(dr)) != NULL) {
-        if (de->d_name[0] != '.') {
-            for (int i = 0; i < Depth - depth; i++)
-                printf("\t");
-            printf("|__%s\n", de->d_name);
-        }
-        if (!isFile(de->d_name)) {
+
+    while ((de = readdir(dr)) != NULL)
+    {
+
+        if ((de->d_name)[0] == '.')
+            continue;
+
+        for (int i = 0; i <step; i++)
+            printf("    ");
+        printf("|-->%s\n",de->d_name);
+
+        if (!isFile(de->d_name)){
             chdir(de->d_name);
-            tree_recursion(Depth, depth - 1);
+            tree_recursion(depth - 1, step + 1);
             chdir("..");
         }
     }
@@ -308,9 +315,18 @@ void tree_recursion(const int Depth , int depth){
 void tree(char *string){
     int depth;
     sscanf(string,"tree %d",&depth);
+
+    if(depth >= 0)
+        depth ++;
+
+    if(depth < -1){
+        printf("Error: depth cannot be smaller tha -1\n");
+        return;
+    }
+
     chdir("root");
     printf("root\n");
-    tree_recursion(depth, depth);
+    tree_recursion(depth, 0);
     chdir(parent_directory);
 }
 
