@@ -40,7 +40,7 @@ char *get_file_path(char *address);
 int file_exist(char *address);
 void create_path(char *address );
 void create_file(char *string);
-void tree_recursion(int Depth , int depth);
+void tree_recursion(int depth , int step);
 int isFile(const char *address);
 void tree(char *string);
 int isBlank(char c);
@@ -70,12 +70,17 @@ void auto_indent(char *string);
 void compare(char *string);
 void undo(char *string);
 void write_to_output(const char *txt);
+char *file_name(char *address);
+int invalid_name(char *address);
 
 int main() {
     start_program();
     char string[STRING_SIZE];
     gets(string);
-    tree(string);
+    char *address;
+    address = address_handler(string);
+    printf("%s %d",file_name(address) , file_exist(address));
+
 
 
     return 0;
@@ -198,8 +203,10 @@ long long find_pattern(char *string , char *pattern ,  long long index){
 char *address_handler(char *string){
     char c;
     char *address;
+    char *temp;
     long long index ,i;
     address = (char*) calloc(STRING_SIZE , sizeof(char));
+    temp = (char*) calloc(STRING_SIZE , sizeof(char));
     index = find_pattern(string, "-file " ,0);
     index += strlen("-file ");
 
@@ -213,7 +220,14 @@ char *address_handler(char *string){
     for(i=0; string[index+i] != c && string[index+i] != '\0'; i++)
         address[i]=string[index+i];
 
-    return address;
+    if((address[0] == 'C') || (address[0] == 'E') || (address[0] == 'D'))
+        return address ;
+
+    strcpy(temp , "root\\");
+    strcat(temp , address);
+    free(address);
+
+    return temp;
 }
 
 char *get_file_path(char *address){
@@ -261,6 +275,10 @@ void create_file(char *string){
     char *address;
     address = address_handler(string);
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(file_exist(address)){
         printf("Error:the file already exist!\n");
     }
@@ -320,7 +338,7 @@ void tree(char *string){
         depth ++;
 
     if(depth < -1){
-        printf("Error: depth cannot be smaller tha -1\n");
+        printf("Error: depth cannot be smaller than -1\n");
         return;
     }
 
@@ -457,6 +475,10 @@ void insertStr(char *string){
     str  = str_handler(string ,"-str ");
     pos = pos_handler(string);
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -504,6 +526,11 @@ void print_file(char *address){
 void cat(char *string){
     char *address;
     address = address_handler(string);
+
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -539,6 +566,10 @@ void removeStr(char *string){
     size = size_handler(string);
     fb_header = string [ strlen(string) - 1];
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -611,6 +642,10 @@ void copyStr(char *string){
     size = size_handler(string);
     fb_header = string [ strlen(string) - 1];
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -657,6 +692,10 @@ void cutStr(char *string){
     size = size_handler(string);
     fb_header = string [ strlen(string) - 1];
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -719,6 +758,10 @@ void pasteStr(char *string){
     address = address_handler(string);
     pos = pos_handler(string);
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -921,6 +964,10 @@ void find(char *string){
         free(at_str);
     }
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -1011,6 +1058,10 @@ void replace(char *string){
         free(at_str);
     }
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -1123,21 +1174,24 @@ char **files_handler(char *string, int *file_count){
 int grep_file(char *address , char *pattern , int mode){
     char line[STRING_SIZE];
     int count =0;
+    char *name;
     FILE *file ;
     file = fopen(address, "r");
 
     while(fgets(line ,STRING_SIZE,file) != NULL)
         if(find_pattern(line , pattern ,0) != -1){
             count ++;
+            name = file_name(address);
             if(mode == Normal) {
                 if(line[strlen(line)-1] == '\n')
                     line[strlen(line)-1] = '\0';
-                printf("%s:%s\n", address, line);
+                printf("%s:%s\n", name, line);
             }
             if(mode == L_option){
-                printf("%s\n",address);
+                printf("%s\n",name);
                 break;
             }
+            free(name);
         }
 
     fclose(file);
@@ -1163,8 +1217,12 @@ void grep(char *string){
         return;
     }
     for(int i = 0 ; i < file_count ; i++){
+        if(invalid_name(files[i])){
+            printf("Error: invalid file name\n");
+            return;
+        }
         if(!file_exist(files[i])){
-            printf("Error:%s does not exist!",files[i]);
+            printf("Error:%s does not exist!\n",files[i]);
             return;
         }
     }
@@ -1205,6 +1263,10 @@ void undo(char *string){
     address = address_handler(string);
     undo_file_path = make_undo_path(address);
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist\n");
         return;
@@ -1258,6 +1320,10 @@ void auto_indent(char *string){
     for(i=0; string[index+i] != c && string[index+i] != '\0'; i++)
         address[i]=string[index+i];
 
+    if(invalid_name(address)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address)){
         printf("Error: file does not exist!\n");
         return;
@@ -1354,8 +1420,17 @@ void compare(char *string){
         index++;
     }
 
+    if(invalid_name(address_1)){
+        printf("Error: invalid file name\n");
+        return;
+    }
     if(!file_exist(address_1)){
         printf("Error: first file does not exist!\n");
+        return;
+    }
+
+    if(invalid_name(address_2)){
+        printf("Error: invalid file name\n");
         return;
     }
     if(!file_exist(address_2)){
@@ -1431,3 +1506,24 @@ void write_to_output(const char *txt){
     chdir(cwd);
 }
 
+char *file_name(char *address){
+    char *name;
+    name = (char*) calloc(STRING_SIZE , sizeof(char));
+    strcpy(name , address);
+    strrev(name);
+    strtok(name, "\\");
+    strrev(name);
+    return name;
+}
+
+int invalid_name(char *address){
+    char *name;
+    name = file_name(address);
+    if(find_pattern(name , "." ,0) == -1) {
+        free(name);
+        return 1;
+    }
+
+    free(name);
+    return 0;
+}
